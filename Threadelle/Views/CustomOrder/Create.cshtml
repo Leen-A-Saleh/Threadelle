@@ -1,0 +1,456 @@
+@model CustomOrderFormViewModel
+@{
+    ViewData["Title"] = "Create Something Custom";
+    var isAuth = User.Identity?.IsAuthenticated == true;
+}
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Dancing+Script:wght@500&display=swap">
+
+<section class="te-custom-hero-video position-relative overflow-hidden w-100 d-flex align-items-center justify-content-center te-observe">
+    <video autoplay muted loop playsinline preload="auto" class="te-custom-hero-video-bg w-100 h-100 position-absolute start-0 top-0">
+        <source src="/video/custom.mp4" type="video/mp4">
+    </video>
+    <div class="te-custom-hero-overlay position-absolute start-0 top-0 w-100 h-100"></div>
+</section>
+
+<section class="te-section te-section-light pt-5 pb-4" id="customWizardSection">
+    <div class="container" style="max-width:950px;">
+        <!-- Form starts directly -->
+
+        <form asp-controller="CustomOrder" asp-action="Create" method="post" enctype="multipart/form-data" id="customForm" class="te-custom-form slide-forward">
+            @Html.AntiForgeryToken()
+            
+            <!-- Layered Decor Elements -->
+            <div class="te-card-glow-orb"></div>
+            <div class="te-card-thread-pattern"></div>
+            <div class="te-card-handmade-badge">
+                <i class="fas fa-heart"></i> Handmade with Love
+            </div>
+            <div class="te-card-bottom-sparkle">
+                <i class="fa-solid fa-sparkle"></i>
+            </div>
+
+            <!-- Warm Greeting Message Block -->
+            <div class="te-consultation-intro">
+                <div class="te-consultation-heading">
+                    ✦ A Note From Leen ✦
+                </div>
+                <p class="te-consultation-welcome">
+                    "Every handmade piece begins with a conversation. Tell me your idea, inspiration, or story and I'll personally craft something unique just for you."
+                </p>
+                <span class="te-consultation-signature">Leen</span>
+            </div>
+            <div class="te-consultation-divider"></div>
+
+            <!-- Progress Indicator Inside Card -->
+            <div class="te-steps-container">
+                <div class="te-steps-progress-bar">
+                    <div class="te-steps-progress-fill" id="customStepsProgress"></div>
+                </div>
+                <div class="te-steps" id="customSteps">
+                    @{
+                        var stepNums = new[] { "01", "02", "03", "04" };
+                        var stepLabels = new[] { "The Dream", "The Details", "Timing", "Inspiration" };
+                    }
+                    @for (int i = 0; i < stepLabels.Length; i++)
+                    {
+                        <div class="te-step" data-step="@(i + 1)">
+                            <div class="te-step-dot">@stepNums[i]</div>
+                            <div class="te-step-label">
+                                @stepLabels[i]
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div asp-validation-summary="All" class="alert alert-danger position-relative" style="z-index: 2;" role="alert"></div>
+
+            <!-- STEP 1 -->
+            <div class="te-step-panel is-active" data-panel="1">
+                <div class="te-chapter-header">
+                    <span class="te-chapter-icon">✨</span>
+                    <h3 class="te-chapter-title">The Dream</h3>
+                    <p class="te-chapter-subtitle">Tell us what you're imagining.</p>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <div class="form-floating te-floating-group">
+                            <input asp-for="Title" class="form-control" placeholder="e.g. A crochet teddy for a new baby" />
+                            <label asp-for="Title"></label>
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating te-floating-group">
+                            <select asp-for="CategoryId" class="form-select">
+                                <option value="" selected disabled hidden></option>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.Id">@c.Name</option>
+                                }
+                            </select>
+                            <label asp-for="CategoryId"></label>
+                        </div>
+                    </div>
+                </div>
+                
+
+                
+                <div class="te-step-nav mt-2">
+                    <span></span>
+                    <button type="button" class="btn btn-primary te-step-next">Next <i class="fas fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="te-step-panel" data-panel="2">
+                <div class="te-chapter-header">
+                    <span class="te-chapter-icon">🎀</span>
+                    <h3 class="te-chapter-title">The Details</h3>
+                    <p class="te-chapter-subtitle">Colors, materials and special touches.</p>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-md-12">
+                        <!-- Extra placeholder if Material Preference is added in future, or just leave blank/favourite colors here -->
+                        <div class="mb-2 position-relative" style="z-index: 2;">
+                            <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--te-rose-mauve);margin-bottom:0.2rem;">Favourite colours</label>
+                            <div class="te-color-picker">
+                                @foreach (var c in Model.Colors.Take(4))
+                                {
+                                    <label class="te-color-pick" style="width:40px;">
+                                        <input type="checkbox" name="ColorIds" value="@c.Id" />
+                                        <span class="te-color-pick-swatch" style="width:28px;height:28px;--swatch:@(c.HexCode ?? "#D8A7A7")"></span>
+                                        <span class="te-color-pick-name" style="font-size:0.6rem;display:none;">@c.Name</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="te-step-nav mt-2">
+                    <button type="button" class="btn btn-outline-primary te-step-prev btn-sm"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                    <button type="button" class="btn btn-primary te-step-next btn-sm">Next <i class="fas fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="te-step-panel" data-panel="3">
+                <div class="te-chapter-header">
+                    <span class="te-chapter-icon">⏳</span>
+                    <h3 class="te-chapter-title">Timing</h3>
+                    <p class="te-chapter-subtitle">When would you like it completed?</p>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <div class="form-floating te-floating-group te-budget-wrapper">
+                            <input asp-for="Budget" class="form-control ps-4" type="number" step="0.01" min="0" placeholder="Budget (Optional)" />
+                            <span class="te-budget-prefix"></span>
+                            <label asp-for="Budget" class="ps-4"></label>
+                            <span asp-validation-for="Budget" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating te-floating-group">
+                            <input asp-for="Deadline" class="form-control" type="date" placeholder="Select Date" />
+                            <label asp-for="Deadline"></label>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="te-custom-reassure"><i class="fas fa-heart me-1"></i> No pressure on either — they just help Leen plan something perfect for you.</p>
+                
+                <div class="te-step-nav mt-2">
+                    <button type="button" class="btn btn-outline-primary te-step-prev btn-sm"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                    <button type="button" class="btn btn-primary te-step-next btn-sm">Next <i class="fas fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="te-step-panel" data-panel="4">
+                <div class="te-chapter-header">
+                    <span class="te-chapter-icon">💭</span>
+                    <h3 class="te-chapter-title">Inspiration</h3>
+                    <p class="te-chapter-subtitle">Share photos, sketches or ideas.</p>
+                </div>
+
+                <label class="te-upload-zone mb-2" id="uploadZone">
+                    <input asp-for="Images" type="file" multiple accept=".jpg,.jpeg,.png,.webp" id="imageInput" hidden />
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span>Drag &amp; drop or click to add photos</span>
+                    <small>Up to 5 images (JPG, PNG or WEBP, max 5MB each)</small>
+                </label>
+                <span asp-validation-for="Images" class="text-danger d-block mt-1"></span>
+                <div class="te-upload-previews" id="uploadPreviews"></div>
+
+                <div class="te-step-nav mt-2">
+                    <button type="button" class="btn btn-outline-primary te-step-prev btn-sm"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                    <button type="submit" class="btn btn-primary" id="customSubmit">
+                        <i class="fas fa-paper-plane me-1"></i> Send My Request
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="te-section te-section-beige pt-5 pb-5" id="handmadeStoriesSection">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-tag" style="color:var(--te-dusty-rose); font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Completed Custom Orders 💕</span>
+            <h2 class="section-title" style="font-size: 1.75rem; color: var(--te-text-dark); margin-top: 0.5rem; font-family: 'Playfair Display', serif;">A collection of custom pieces that found their owners.</h2>
+            <div class="te-divider justify-content-center" style="max-width:180px;margin:.75rem auto;"><span>♥</span></div>
+        </div>
+
+        @if (Model.CompletedOrders != null && Model.CompletedOrders.Any())
+        {
+            <div class="te-slider-outer te-observe" style="position: relative; max-width: 1100px; margin: 0 auto;">
+                <div class="swiper te-completed-orders-swiper" style="padding: 20px 10px;">
+                    <div class="swiper-wrapper">
+                        @foreach (var order in Model.CompletedOrders)
+                        {
+                            var coverImage = order.Images.FirstOrDefault(i => i.IsCoverImage && !i.IsDeleted)?.ImageUrl 
+                                          ?? order.Images.FirstOrDefault(i => i.IsFinishedProduct && !i.IsDeleted)?.ImageUrl;
+                            
+                            var photoCount = order.Images.Count(i => i.IsFinishedProduct && !i.IsDeleted);
+
+                            if (string.IsNullOrEmpty(coverImage)) continue;
+                            
+                            <div class="swiper-slide" style="height: auto;">
+                                <div class="te-card h-100 gallery-card" style="cursor: pointer; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; background: var(--te-cream); transition: transform 0.3s ease, box-shadow 0.3s ease;" 
+                                     data-id="@order.Id"
+                                     data-title="@(string.IsNullOrWhiteSpace(order.Title) ? "Custom Piece" : order.Title)"
+                                     data-date="Delivered • @(order.GalleryPublishedAt?.ToString("MMMM yyyy") ?? order.UpdatedAt?.ToString("MMMM yyyy"))"
+                                     data-desc="@order.GalleryDescription"
+                                     onclick="openGalleryLightbox(this)"
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 35px rgba(0,0,0,0.12)';"
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)';">
+                                    <div class="te-card__media position-relative" style="height: 380px; overflow: hidden;">
+                                        <img src="@coverImage" alt="Completed Custom Order" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease;" class="te-card__img" loading="lazy" />
+                                        
+                                        <div class="position-absolute bottom-0 start-0 w-100" style="background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%); padding: 30px 20px 15px 20px; z-index: 2;">
+                                            <div class="d-flex justify-content-between align-items-end">
+                                                <h5 style="font-family: 'Playfair Display', serif; font-size: 1.25rem; color: #fff; margin: 0; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                                    @(string.IsNullOrWhiteSpace(order.Title) ? "Custom Piece" : order.Title)
+                                                </h5>
+                                                <span class="badge" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); color: #fff; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 6px 12px;">
+                                                    <i class="fas fa-camera me-1"></i> @photoCount
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 text-center" style="background: var(--te-cream);">
+                                        <div style="font-size: 0.9rem; color: var(--te-text-muted); font-style: italic;">
+                                            Delivered • @(order.GalleryPublishedAt?.ToString("MMMM yyyy") ?? order.UpdatedAt?.ToString("MMMM yyyy"))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="swiper-pagination te-completed-swiper-dots" style="position: static; margin-top: 2rem;"></div>
+                    <div class="swiper-button-prev te-premium-nav" style="color: var(--te-dusty-rose); background: white; width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.1); left: -25px;"></div>
+                    <div class="swiper-button-next te-premium-nav" style="color: var(--te-dusty-rose); background: white; width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.1); right: -25px;"></div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center mt-5 mb-4" style="background: var(--te-cream); border-radius: 24px; padding: 4rem 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 700px; margin: 0 auto; border: 1px solid rgba(230, 213, 213, 0.5);">
+                <i class="fas fa-seedling mb-3" style="font-size: 2.5rem; color: var(--te-dusty-rose); opacity: 0.8;"></i>
+                <h3 style="font-family: 'Playfair Display', serif; color: var(--te-text-dark); margin-bottom: 1rem;">Our gallery is currently blossoming</h3>
+                <p style="color: var(--te-text-muted); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    We are crafting beautiful custom pieces right now. Check back soon to see the finished creations, or start your own custom journey today.
+                </p>
+                <button type="button" onclick="document.getElementById('customOrderFormSection').scrollIntoView({behavior: 'smooth'})" class="btn btn-primary" style="padding: 12px 30px; font-weight: 500; font-size: 1.05rem; border-radius: 30px; background: var(--te-dusty-rose); border-color: var(--te-dusty-rose);">
+                    Request a Custom Order
+                </button>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Lightbox Modal -->
+<div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; background: transparent;">
+            <div class="modal-body p-0 position-relative" style="background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(10px);">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-4" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1050; opacity: 0.8;"></button>
+                
+                <div class="row g-0 h-100">
+                    <div class="col-lg-8 p-4 d-flex align-items-center justify-content-center" style="min-height: 60vh; position: relative;">
+                        <!-- Loading spinner -->
+                        <div id="lightboxLoading" class="text-white text-center position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
+                            <div class="spinner-border" role="status" style="width: 3rem; height: 3rem; color: var(--te-dusty-rose);">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+
+                        <!-- Main Image Viewer -->
+                        <div class="swiper lightbox-main-swiper w-100 h-100" style="opacity: 0; transition: opacity 0.3s;">
+                            <div class="swiper-wrapper" id="lightboxMainWrapper"></div>
+                            <div class="swiper-button-prev text-white"></div>
+                            <div class="swiper-button-next text-white"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 p-4 d-flex flex-column" style="background: var(--te-cream); border-left: 1px solid rgba(0,0,0,0.1);">
+                        <div style="margin-bottom: 2rem; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 1.5rem;">
+                            <h4 id="lightboxTitle" style="font-family: 'Playfair Display', serif; color: var(--te-text-dark); margin-bottom: 0.5rem; font-size: 1.8rem; font-weight: 600;">Title</h4>
+                            <div id="lightboxDate" style="color: var(--te-dusty-rose); font-size: 0.95rem; font-style: italic; font-weight: 500;">Date</div>
+                        </div>
+                        
+                        <div id="lightboxDesc" style="color: var(--te-text-muted); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem; flex-grow: 1;">
+                            Description
+                        </div>
+                        
+                        <!-- Thumbnail strip -->
+                        <div class="swiper lightbox-thumb-swiper w-100 mt-auto" style="height: 80px; opacity: 0; transition: opacity 0.3s;">
+                            <div class="swiper-wrapper" id="lightboxThumbWrapper"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        window.teInitCustomWizard();
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
+    <style>
+        .te-premium-nav { display: none; }
+        @@media(min-width: 900px) {
+            .te-premium-nav { display: flex !important; }
+        }
+        .te-card__img { transform: scale(1); }
+        .te-card__img:hover { transform: scale(1.05); }
+        .lightbox-thumb-swiper .swiper-slide { opacity: 0.4; cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid transparent; }
+        .lightbox-thumb-swiper .swiper-slide-thumb-active { opacity: 1; border-color: var(--te-dusty-rose); }
+    </style>
+
+    <script>
+        let mainLightboxSwiper, thumbLightboxSwiper;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (Model.CompletedOrders != null && Model.CompletedOrders.Any())
+            {
+                <text>
+                new Swiper('.te-completed-orders-swiper', {
+                    slidesPerView: 1.15,
+                    spaceBetween: 20,
+                    centeredSlides: true,
+                    grabCursor: true,
+                    loop: true,
+                    autoplay: {
+                        delay: 4000,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true
+                    },
+                    pagination: {
+                        el: '.te-completed-swiper-dots',
+                        clickable: true,
+                        dynamicBullets: true
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    breakpoints: {
+                        600: { slidesPerView: 2.2, spaceBetween: 24, centeredSlides: false },
+                        900: { slidesPerView: 3, spaceBetween: 30, centeredSlides: false }
+                    }
+                });
+                </text>
+            }
+
+            // Init Lightbox Swipers
+            thumbLightboxSwiper = new Swiper(".lightbox-thumb-swiper", {
+                spaceBetween: 10,
+                slidesPerView: 4,
+                freeMode: true,
+                watchSlidesProgress: true,
+            });
+            mainLightboxSwiper = new Swiper(".lightbox-main-swiper", {
+                spaceBetween: 10,
+                navigation: {
+                    nextEl: ".lightbox-main-swiper .swiper-button-next",
+                    prevEl: ".lightbox-main-swiper .swiper-button-prev",
+                },
+                thumbs: {
+                    swiper: thumbLightboxSwiper,
+                },
+            });
+        });
+
+        function openGalleryLightbox(el) {
+            const id = el.getAttribute('data-id');
+            const title = el.getAttribute('data-title');
+            const date = el.getAttribute('data-date');
+            const desc = el.getAttribute('data-desc');
+
+            document.getElementById('lightboxTitle').innerText = title;
+            document.getElementById('lightboxDate').innerText = date;
+            const descEl = document.getElementById('lightboxDesc');
+            if (desc && desc.trim() !== '') {
+                descEl.innerText = desc;
+                descEl.style.display = 'block';
+            } else {
+                descEl.style.display = 'none';
+            }
+
+            document.getElementById('lightboxLoading').style.display = 'block';
+            document.querySelector('.lightbox-main-swiper').style.opacity = '0';
+            document.querySelector('.lightbox-thumb-swiper').style.opacity = '0';
+
+            var modal = new bootstrap.Modal(document.getElementById('lightboxModal'));
+            modal.show();
+
+            fetch('/CustomOrder/GetGalleryImages/' + id)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('lightboxLoading').style.display = 'none';
+                    if (data.success && data.images && data.images.length > 0) {
+                        const mainWrapper = document.getElementById('lightboxMainWrapper');
+                        const thumbWrapper = document.getElementById('lightboxThumbWrapper');
+                        mainWrapper.innerHTML = '';
+                        thumbWrapper.innerHTML = '';
+
+                        data.images.forEach(img => {
+                            // Main slide
+                            const slide = document.createElement('div');
+                            slide.className = 'swiper-slide d-flex align-items-center justify-content-center';
+                            slide.innerHTML = `<img src="${img.originalUrl}" style="max-height: 75vh; max-width: 100%; object-fit: contain; border-radius: 8px;" />`;
+                            mainWrapper.appendChild(slide);
+
+                            // Thumb slide
+                            const thumb = document.createElement('div');
+                            thumb.className = 'swiper-slide';
+                            thumb.innerHTML = `<img src="${img.thumbnailUrl}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+                            thumbWrapper.appendChild(thumb);
+                        });
+
+                        mainLightboxSwiper.update();
+                        thumbLightboxSwiper.update();
+                        mainLightboxSwiper.slideTo(0, 0);
+                        
+                        document.querySelector('.lightbox-main-swiper').style.opacity = '1';
+                        document.querySelector('.lightbox-thumb-swiper').style.opacity = '1';
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('lightboxLoading').style.display = 'none';
+                    console.error("Error fetching images", err);
+                });
+        }
+    </script>
+}

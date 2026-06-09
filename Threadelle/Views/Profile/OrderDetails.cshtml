@@ -1,0 +1,115 @@
+@model Order
+@{
+    ViewData["Title"] = "Order " + Model.OrderNumber;
+    var justPlaced = ViewBag.JustPlaced == true;
+    var shipping = Model.TotalPrice - Model.SubTotal + Model.DiscountAmount;
+    var statuses = new[] { OrderStatus.Pending, OrderStatus.Confirmed, OrderStatus.InProgress, OrderStatus.Ready, OrderStatus.Delivered };
+    int currentIndex = Array.IndexOf(statuses, Model.Status);
+}
+
+<section class="te-section te-section-light te-profile-page">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3"><partial name="_ProfileSidebar" /></div>
+            <div class="col-lg-9">
+                @if (justPlaced)
+                {
+                    <div class="te-order-celebrate">
+                        <div class="te-success-icon te-success-icon-sm"><i class="fas fa-heart"></i></div>
+                        <div>
+                            <h4>Thank you — your order is in! 💕</h4>
+                            <p class="mb-0">We've sent a note to your notifications. Leen will start preparing your treasures with love.</p>
+                        </div>
+                    </div>
+                }
+
+                <a asp-controller="Profile" asp-action="Orders" class="btn btn-link mb-2"><i class="fas fa-arrow-left"></i> Back to orders</a>
+
+                <div class="te-panel">
+                    <div class="te-panel-head">
+                        <div>
+                            <h5 class="mb-0">@Model.OrderNumber</h5>
+                            <small style="color:var(--te-text-muted);">Placed @Model.CreatedAt.ToLocalTime().ToString("dddd, dd MMM yyyy")</small>
+                        </div>
+                        <span class="te-badge te-badge-@Model.Status.Badge()">@Model.Status.Friendly()</span>
+                    </div>
+
+                    @if (Model.Status != OrderStatus.Cancelled)
+                    {
+                        <div class="te-order-timeline">
+                            @for (int i = 0; i < statuses.Length; i++)
+                            {
+                                <div class="te-timeline-step @(i <= currentIndex ? "is-done" : "")">
+                                    <div class="te-timeline-dot"><i class="fas fa-check"></i></div>
+                                    <span>@statuses[i].Friendly()</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">This order was cancelled.</div>
+                    }
+                </div>
+
+                <div class="te-panel">
+                    <div class="te-panel-head"><h5>Items</h5></div>
+                    <div class="te-order-items">
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <div class="te-order-item-row">
+                                <div class="te-cart-thumb">
+                                    @{ var img = item.Product?.Images?.FirstOrDefault(x => x.IsPrimary)?.ImageUrl ?? item.Product?.Images?.FirstOrDefault()?.ImageUrl; }
+                                    @if (!string.IsNullOrEmpty(img))
+                                    {
+                                        <img src="@img" alt="@item.ProductName" />
+                                    }
+                                    else
+                                    {
+                                        <span class="te-product-placeholder"><i class="fas fa-scissors"></i></span>
+                                    }
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="te-cart-name">@item.ProductName</div>
+                                    @if (!string.IsNullOrEmpty(item.ColorName))
+                                    {
+                                        <div class="te-cart-variant">@item.ColorName</div>
+                                    }
+                                    <div class="te-cart-unit">@Threadelle.Helpers.CurrencyFormatter.Format(item.UnitPrice) × @item.Quantity</div>
+                                </div>
+                                <strong>@((item.UnitPrice * item.Quantity).ToString("0.00"))</strong>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="te-order-totals">
+                        <div class="te-summary-row"><span>Subtotal</span><strong>@Threadelle.Helpers.CurrencyFormatter.Format(Model.SubTotal)</strong></div>
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <div class="te-summary-row"><span>Discount</span><strong>−@Threadelle.Helpers.CurrencyFormatter.Format(Model.DiscountAmount)</strong></div>
+                        }
+                        <div class="te-summary-row"><span>Shipping</span><strong>@(shipping <= 0 ? "Free" : Threadelle.Helpers.CurrencyFormatter.Format(shipping))</strong></div>
+                        <div class="te-summary-divider"></div>
+                        <div class="te-summary-row te-summary-total"><span>Total</span><strong>@Threadelle.Helpers.CurrencyFormatter.Format(Model.TotalPrice)</strong></div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="te-panel h-100">
+                            <h6><i class="fas fa-truck me-1"></i> Delivery</h6>
+                            <p class="mb-0" style="color:var(--te-text-secondary);font-size:.9rem;">@Model.CustomerNote</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="te-panel h-100">
+                            <h6><i class="fas fa-wallet me-1"></i> Payment</h6>
+                            <p class="mb-1" style="color:var(--te-text-secondary);font-size:.9rem;">@Model.PaymentMethod</p>
+                            <span class="te-badge te-badge-@Model.PaymentStatus.Badge()">@Model.PaymentStatus</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,111 @@
+@using Threadelle.Helpers
+@{
+    ViewData["Title"] = "Account Settings";
+}
+
+<div class="te-page-header">
+    <div class="container">
+        <span class="section-tag">Your Account</span>
+        <h1 class="section-title">Settings</h1>
+    </div>
+</div>
+
+<section class="te-section te-section-light">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <partial name="_ProfileSidebar" />
+            </div>
+
+            <!-- Main -->
+            <div class="col-lg-9">
+                <div class="te-profile-welcome">
+                    <h1 class="section-title" style="font-size:1.6rem;">Account Settings</h1>
+                    <p>Manage your password and account preferences.</p>
+                </div>
+
+                <!-- Change Password -->
+                <div class="te-panel mb-4">
+                    <div class="te-panel-head">
+                        <h5><i class="fas fa-lock me-2" style="color:var(--te-dusty-rose);"></i>Change Password</h5>
+                    </div>
+                    <form asp-controller="Profile" asp-action="ChangePassword" method="post" id="passwordForm">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <div class="form-floating position-relative">
+                                    <input type="password" name="currentPassword" id="currentPassword" class="form-control" placeholder="Current password" required />
+                                    <label for="currentPassword">Current Password</label>
+                                    <button type="button" class="te-pw-toggle" onclick="togglePw('currentPassword', this)"><i class="far fa-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-floating position-relative">
+                                    <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="New password" required minlength="8" />
+                                    <label for="newPassword">New Password</label>
+                                    <button type="button" class="te-pw-toggle" onclick="togglePw('newPassword', this)"><i class="far fa-eye"></i></button>
+                                </div>
+                                <small class="text-muted d-block mt-1" style="font-size:.75rem;">Minimum 8 characters, with at least one uppercase letter and one number.</small>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-floating position-relative">
+                                    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm password" required />
+                                    <label for="confirmPassword">Confirm New Password</label>
+                                    <button type="button" class="te-pw-toggle" onclick="togglePw('confirmPassword', this)"><i class="far fa-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-lock me-1"></i> Update Password
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Account Info (read-only) -->
+                <div class="te-panel">
+                    <div class="te-panel-head">
+                        <h5><i class="fas fa-circle-info me-2" style="color:var(--te-dusty-rose);"></i>Account Info</h5>
+                        <a asp-controller="Profile" asp-action="Edit" class="btn btn-outline-primary btn-sm">Edit Profile</a>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" value="@User.DisplayName()" readonly style="background:var(--te-soft-beige);" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" value="@User.Identity!.Name" readonly style="background:var(--te-soft-beige);" />
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-top" style="border-color:var(--te-border)!important;">
+                        <p style="color:var(--te-text-muted);font-size:.82rem;">
+                            <i class="fas fa-info-circle me-1" style="color:var(--te-blush);"></i>
+                            To update your name, phone, or profile picture, visit <a asp-controller="Profile" asp-action="Edit">Edit Profile</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function togglePw(id, btn) {
+            var inp = document.getElementById(id);
+            var icon = btn.querySelector('i');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                icon.className = 'far fa-eye';
+            }
+        }
+    </script>
+}

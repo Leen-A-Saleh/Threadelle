@@ -1,0 +1,45 @@
+<div class="modal fade te-modal" id="testimonialModal" tabindex="-1" aria-labelledby="testimonialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="te-modal-deco"></div>
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="testimonialModalLabel">
+                    <span class="script-font" style="font-size:1.6rem;color:var(--te-deep-rose);">Share your story</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center mb-4" style="color:var(--te-text-secondary);font-size:.9rem;">
+                    We'd love to hear how your ThreadElle piece made you feel. Your note will appear once it's approved. 💕
+                </p>
+                <form id="testimonialForm" enctype="multipart/form-data">
+                    <div class="text-center mb-3">
+                        <label class="form-label d-block">Your rating</label>
+                        <div class="te-rating-input" id="testimonialStars">
+                            @for (int s = 1; s <= 5; s++)
+                            {
+                                <button type="button" class="te-star" data-value="@s" aria-label="@s stars"><i class="far fa-star"></i></button>
+                            }
+                        </div>
+                        <input type="hidden" name="rating" id="testimonialRating" value="5" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="testimonialMessage">Your words <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="testimonialMessage" name="message" rows="4"
+                                  maxlength="500" placeholder="Tell us what you loved..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="testimonialImage">Add a photo (optional)</label>
+                        <input type="file" class="form-control" id="testimonialImage" name="image" accept="image/jpeg,image/png,image/webp" />
+                        <div class="form-text" style="font-size: 0.75rem; color: var(--te-text-muted);">Max 5MB. JPG, PNG, WEBP.</div>
+                    </div>
+                    <div class="te-form-msg" id="testimonialFormMsg"></div>
+                    <button type="submit" class="te-btn-luxury w-100 justify-content-center" id="testimonialSubmitBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="testimonialSubmitSpinner"></span>
+                        <i class="fas fa-heart" id="testimonialSubmitIcon"></i> <span id="testimonialSubmitText">Send My Note</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

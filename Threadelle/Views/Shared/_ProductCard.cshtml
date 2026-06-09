@@ -1,0 +1,123 @@
+@model Threadelle.ViewModels.ProductCardViewModel
+
+<div class="te-card @(Model.InStock ? "" : "te-card--oos")">
+    <!-- ── Image Section ─────────────────────────────────── -->
+    <div class="te-card__media">
+        <a class="te-card__img-link" asp-controller="Collections" asp-action="Details" asp-route-slug="@Model.Slug" aria-label="View @Model.Name">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                var blurClass = "";
+                if (!Model.InStock)
+                {
+                    blurClass = Model.IsOnePiece ? "" : "te-card__img--blur-slight";
+                }
+                <img class="te-card__img @blurClass" src="@Model.ImageUrl" alt="@Model.Name" loading="lazy" />
+            }
+            else
+            {
+                <div class="te-card__placeholder"><i class="fas fa-scissors"></i></div>
+            }
+        </a>
+
+        <!-- Centered Zero-Stock Overlay Badge -->
+        @if (!Model.InStock)
+        {
+            if (Model.IsOnePiece)
+            {
+                <div class="te-card__sold-overlay--onepiece">
+                    <span class="te-card__sold-badge--onepiece-darkpink">Found Her Owner ❤️</span>
+                </div>
+            }
+            else
+            {
+                <div class="te-card__sold-overlay--elegant">
+                    <span class="te-card__sold-badge--blush">All Claimed 💕</span>
+                </div>
+            }
+        }
+
+        <!-- Top-left Badge: ONE PIECE for OnePieces ONLY. No other badges. -->
+        @if (Model.IsOnePiece)
+        {
+            <span class="te-card__type-badge te-card__type-badge--onepiece">ONE PIECE</span>
+        }
+
+        <!-- Discount badge (top-right) -->
+        @if (Model.HasDiscount && !string.IsNullOrEmpty(Model.DiscountBadge))
+        {
+            <span class="te-card__discount-badge">@Model.DiscountBadge</span>
+        }
+
+        <!-- Luxury Overlay on Hover (Center 3 Actions) -->
+        <div class="te-card__hover-overlay">
+            <a class="te-card__hover-overlay-bg" asp-controller="Collections" asp-action="Details" asp-route-slug="@Model.Slug" aria-hidden="true"></a>
+            <div class="te-card__overlay-actions">
+                <!-- 1. Add to Cart -->
+                @if (Model.InStock)
+                {
+                    <button class="te-card__overlay-btn te-add-cart-btn" data-product-id="@Model.Id" aria-label="Add to cart">
+                        <i class="fas fa-bag-shopping"></i>
+                    </button>
+                }
+                else
+                {
+                    <button class="te-card__overlay-btn te-card__overlay-btn--disabled" disabled aria-label="Sold out">
+                        <i class="fas fa-ban"></i>
+                    </button>
+                }
+
+                <!-- 2. Quick View -->
+                <a class="te-card__overlay-btn" asp-controller="Collections" asp-action="Details" asp-route-slug="@Model.Slug" aria-label="Quick View">
+                    <i class="fas fa-eye"></i>
+                </a>
+
+                <!-- 3. Add to Wishlist -->
+                <button class="te-card__overlay-btn te-wishlist-btn @(Model.IsWishlisted ? "is-active" : "")"
+                        data-product-id="@Model.Id"
+                        aria-label="@(Model.IsWishlisted ? "Remove from wishlist" : "Add to wishlist")"
+                        aria-pressed="@(Model.IsWishlisted ? "true" : "false")">
+                    <i class="@(Model.IsWishlisted ? "fas" : "far") fa-heart"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Info Section ──────────────────────────────────── -->
+    <div class="te-card__body">
+        <div class="te-card__category">@Model.CategoryName</div>
+        <a class="te-card__name" asp-controller="Collections" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Name</a>
+
+        <div class="te-card__footer">
+            <div class="d-flex flex-column gap-0">
+                @if (Model.HasDiscount)
+                {
+                    <div class="te-card__price-row">
+                        <span class="te-card__price te-card__price--sale">@Threadelle.Helpers.CurrencyFormatter.Format(Model.Price)</span>
+                        <span class="te-card__price-orig">@Threadelle.Helpers.CurrencyFormatter.Format(Model.OriginalPrice)</span>
+                    </div>
+                    <span class="te-card__save-text">Save @Threadelle.Helpers.CurrencyFormatter.Format(Model.DiscountAmount)</span>
+                }
+                else
+                {
+                    <span class="te-card__price">@Threadelle.Helpers.CurrencyFormatter.Format(Model.Price)</span>
+                }
+            </div>
+
+            @if (Model.InStock)
+            {
+                <div class="te-card__actions">
+                    <button class="te-card__cart-btn te-add-cart-btn" data-product-id="@Model.Id" aria-label="Add to cart">
+                        <i class="fas fa-bag-shopping"></i>
+                        <span>Add</span>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <a class="te-card__view-btn" asp-controller="Collections" asp-action="Details" asp-route-slug="@Model.Slug">
+                    <i class="fas fa-eye"></i> View
+                </a>
+            }
+        </div>
+    </div>
+</div>

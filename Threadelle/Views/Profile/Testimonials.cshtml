@@ -1,0 +1,69 @@
+@model List<Testimonial>
+@{
+    ViewData["Title"] = "My Reviews";
+}
+
+<section class="te-section te-section-light te-profile-page">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3"><partial name="_ProfileSidebar" /></div>
+            <div class="col-lg-9">
+                <div class="te-profile-header-card d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h1 class="te-profile-header-title">
+                            <span class="te-profile-header-card-icon"><i class="fas fa-comment-dots"></i></span>
+                            My Testimonials
+                        </h1>
+                        <p class="te-profile-header-subtitle">Your kind words about our handcrafted pieces.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary rounded-pill px-4" id="openTestimonialModal"><i class="fas fa-pen-nib me-2"></i>Write a Note</button>
+                </div>
+
+                @if (Model.Any())
+                {
+                    <div class="te-testimonial-mine">
+                        @foreach (var t in Model)
+                        {
+                            <div class="te-form-card mb-4 p-4 border-0">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <span class="te-stars">@(new string('★', t.Rating))</span>
+                                    @if (t.IsApproved)
+                                    {
+                                        <span class="te-badge te-badge-delivered"><i class="fas fa-check"></i> Published</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="te-badge te-badge-pending"><i class="fas fa-clock"></i> Awaiting approval</span>
+                                    }
+                                </div>
+                                <p class="mt-2 mb-1 text-dark" style="font-size: 1.05rem;">“@t.Message”</p>
+                                <small class="text-muted">@t.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</small>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="te-form-card text-center py-5 d-flex flex-column justify-content-center align-items-center" style="min-height: 400px;">
+                        <div class="te-empty-icon mb-4" style="width: 80px; height: 80px; border-radius: 50%; background: var(--te-light-blush); color: var(--te-dusty-rose); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto;">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <h3 style="font-family: var(--font-heading); color: var(--te-text-dark);">You haven't written a note yet</h3>
+                        <p class="text-muted mb-4" style="max-width: 400px; margin: 0 auto;">Loved your ThreadElle piece? We'd be honoured to hear about it.</p>
+                        <button type="button" class="btn btn-primary rounded-pill px-5 py-2" id="openTestimonialModal2">Share Your Story</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<partial name="_TestimonialModal" />
+
+@section Scripts {
+    <script>
+        document.getElementById('openTestimonialModal2')?.addEventListener('click', function () {
+            document.getElementById('openTestimonialModal')?.click();
+        });
+    </script>
+}

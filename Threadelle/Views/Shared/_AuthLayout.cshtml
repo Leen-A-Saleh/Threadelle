@@ -1,0 +1,65 @@
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var requestToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ThreadElle</title>
+    <meta name="description" content="ThreadElle — handmade crochet, beadwork and personalised gifts, crafted with love for the women you adore." />
+    <meta name="request-verification-token" content="@requestToken" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/storefront.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Threadelle.styles.css" asp-append-version="true" />
+</head>
+<body class="te-auth-body">
+
+    <!-- NAVBAR — slim brand-only bar on auth pages -->
+    <header id="siteHeader" class="te-auth-header">
+        <nav class="navbar te-navbar te-auth-nav" id="mainNav">
+            <div class="container justify-content-center">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-name">ThreadElle</span>
+                    <span class="brand-tagline">Handmade for Her</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- FLASH TOASTS -->
+    <div class="te-toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="true">
+        @if (TempData["FlashMessage"] != null)
+        {
+            <div class="te-toast te-toast-@(TempData["FlashType"] ?? "success")" data-autoshow="true">
+                <i class="fas fa-heart"></i>
+                <span>@TempData["FlashMessage"]</span>
+                <button class="te-toast-close" aria-label="Close">&times;</button>
+            </div>
+        }
+    </div>
+
+    <main role="main" class="te-auth-main">
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.TE = {
+            token: document.querySelector('meta[name="request-verification-token"]').content,
+            isAuthenticated: @(User.Identity?.IsAuthenticated == true ? "true" : "false")
+        };
+    </script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,17 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Create Account";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var returnUrl = '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.ReturnUrl ?? "/"))';
+        if (typeof window.teOpenAuthModal === 'function') {
+            window.teOpenAuthModal('register', returnUrl === '%2F' ? '/' : returnUrl);
+        }
+    });
+</script>
+}

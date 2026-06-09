@@ -1,0 +1,106 @@
+@model EditProfileViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<section class="te-section te-section-light te-profile-page">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3"><partial name="_ProfileSidebar" /></div>
+            <div class="col-lg-9">
+                <div class="te-profile-header-card">
+                    <h1 class="te-profile-header-title">
+                        <span class="te-profile-header-card-icon"><i class="fas fa-sliders"></i></span>
+                        Edit Profile
+                    </h1>
+                    <p class="te-profile-header-subtitle">Keep your details up to date.</p>
+                </div>
+
+                <div class="te-form-card border-0">
+                    <form asp-controller="Profile" asp-action="Edit" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-4">
+                            <!-- Left Column: Avatar -->
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    @if (!string.IsNullOrEmpty(User.ProfileImage()))
+                                    {
+                                        <img src="@User.ProfileImage()" alt="Profile Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--te-light-blush); box-shadow: 0 4px 12px rgba(0,0,0,0.05);" class="mb-3" id="avatarPreview" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--te-light-blush); color: var(--te-rose-mauve); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1rem auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" id="avatarPreviewText">
+                                            @(User.FirstName()?.Substring(0, 1).ToUpper() ?? "U")
+                                        </div>
+                                    }
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label text-muted small fw-bold" style="cursor: pointer;">
+                                        Change Photo
+                                        <input type="file" name="profileImage" class="form-control form-control-sm rounded-pill mt-1" accept="image/*" id="avatarInput" />
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Details -->
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="FullName" class="form-label text-muted small fw-bold">Full Name</label>
+                                    <input asp-for="FullName" class="form-control rounded-pill px-3 py-2" style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.05);" placeholder="Enter full name" />
+                                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                                </div>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-sm-6">
+                                        <label asp-for="PhoneNumber" class="form-label text-muted small fw-bold">Phone Number</label>
+                                        <input asp-for="PhoneNumber" class="form-control rounded-pill px-3 py-2" style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.05);" placeholder="e.g. +1 234 567 890" />
+                                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label asp-for="BirthDate" class="form-label text-muted small fw-bold">Birth Date</label>
+                                        <input asp-for="BirthDate" type="date" class="form-control rounded-pill px-3 py-2" style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.05);" />
+                                        <span asp-validation-for="BirthDate" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Gender" class="form-label text-muted small fw-bold">Gender</label>
+                                    <select asp-for="Gender" class="form-select rounded-pill px-3 py-2" style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.05);" asp-items="Html.GetEnumSelectList<ApplicationUserGender>()"></select>
+                                </div>
+                                
+                                <hr class="my-4" style="border-color: rgba(0,0,0,0.05);" />
+                                
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="Index" class="btn btn-light rounded-pill px-4">Cancel</a>
+                                    <button type="submit" class="btn btn-primary rounded-pill px-5"><i class="fas fa-save me-2"></i>Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('avatarInput')?.addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function (ev) {
+                var prev = document.getElementById('avatarPreview');
+                if (prev.tagName === 'IMG') { prev.src = ev.target.result; }
+                else {
+                    var img = document.createElement('img');
+                    img.src = ev.target.result; img.className = 'te-edit-avatar'; img.id = 'avatarPreview';
+                    prev.replaceWith(img);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+}

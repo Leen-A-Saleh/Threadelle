@@ -1,0 +1,105 @@
+@model OrderIndexViewModel
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2>Orders</h2>
+        <p class="te-sub">@Model.TotalCount order@(Model.TotalCount == 1 ? "" : "s") total</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="te-admin-card mb-3">
+    <div class="te-admin-card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="te-admin-label">Search</label>
+                <input type="text" name="search" value="@Model.Search" class="te-admin-ctrl" placeholder="Order number or customer name..." />
+            </div>
+            <div class="col-md-4">
+                <label class="te-admin-label">Status</label>
+                <select name="status" class="te-admin-ctrl">
+                    @if (string.IsNullOrEmpty(Model.Status))
+                    {
+                        <option value="" selected>All statuses</option>
+                    }
+                    else
+                    {
+                        <option value="">All statuses</option>
+                    }
+                    @foreach (var s in Enum.GetValues<OrderStatus>())
+                    {
+                        if (Model.Status == s.ToString())
+                        {
+                            <option value="@s" selected>@s.Friendly()</option>
+                        }
+                        else
+                        {
+                            <option value="@s">@s.Friendly()</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filter</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="te-admin-card">
+    @if (Model.Items.Any())
+    {
+        <div class="table-responsive">
+            <table class="table te-admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.7rem 1.1rem;">Order #</th>
+                        <th>Customer</th>
+                        <th class="text-end">Total</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th class="text-end" style="padding-right:1.1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in Model.Items)
+                    {
+                        <tr>
+                            <td style="padding:.7rem 1.1rem;"><span class="te-row-title">@o.OrderNumber</span></td>
+                            <td>@o.CustomerName</td>
+                            <td class="text-end"><strong style="color:var(--te-rose-mauve);">@o.TotalPrice.ToString("0.00") JOD</strong></td>
+                            <td><span class="te-badge te-badge-@o.PaymentStatus.Badge()">@o.PaymentStatus</span></td>
+                            <td><span class="te-badge te-badge-@o.Status.Badge()">@o.Status.Friendly()</span></td>
+                            <td class="te-row-sub">@o.CreatedAt.ToString("MMM d, yyyy")</td>
+                            <td class="text-end" style="padding-right:1.1rem;">
+                                <a class="te-act-btn" asp-action="Details" asp-route-id="@o.Id" title="View"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="te-admin-card-body border-top d-flex justify-content-center gap-2">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a asp-action="Index" asp-route-page="@i" asp-route-status="@Model.Status" asp-route-search="@Model.Search"
+                       class="btn btn-sm @(i == Model.CurrentPage ? "btn-primary" : "btn-outline-primary")">@i</a>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="te-admin-empty">
+            <i class="fas fa-bag-shopping"></i>
+            <span>No orders found.</span>
+        </div>
+    }
+</div>

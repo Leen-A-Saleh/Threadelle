@@ -1,0 +1,97 @@
+@model CartViewModel
+@{
+    ViewData["Title"] = "Your Bag";
+}
+
+<section class="te-page-header">
+    <div class="container text-center">
+        <span class="section-tag">Almost Yours</span>
+        <h1 class="section-title">Your Bag</h1>
+    </div>
+</section>
+
+<section class="te-section te-section-light pt-0">
+    <div class="container">
+        @if (Model.IsEmpty)
+        {
+            <div class="te-empty-state">
+                <i class="fas fa-bag-shopping te-empty-icon"></i>
+                <h3>Your bag is feeling light</h3>
+                <p>Fill it with something handmade and lovely — every piece is waiting to find its person.</p>
+                <a asp-controller="Collections" asp-action="Index" class="btn btn-primary">Continue Shopping</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4" id="cartWrap">
+                <div class="col-lg-8">
+                    <!-- Free shipping progress -->
+                    <div class="te-ship-progress" id="shipProgress" data-threshold="@Model.ShippingThreshold" data-subtotal="@Model.SubTotal">
+                        <div class="te-ship-progress-text"></div>
+                        <div class="te-ship-progress-bar"><span></span></div>
+                    </div>
+
+                    <div class="te-cart-lines">
+                        @foreach (var line in Model.Lines)
+                        {
+                            <div class="te-cart-line" data-item-id="@line.CartItemId" data-unit="@line.UnitPrice">
+                                <a asp-controller="Collections" asp-action="Details" asp-route-slug="@line.Slug" class="te-cart-thumb">
+                                    @if (!string.IsNullOrEmpty(line.ImageUrl))
+                                    {
+                                        <img src="@line.ImageUrl" alt="@line.Name" />
+                                    }
+                                    else
+                                    {
+                                        <span class="te-product-placeholder"><i class="fas fa-scissors"></i></span>
+                                    }
+                                </a>
+                                <div class="te-cart-info">
+                                    <a asp-controller="Collections" asp-action="Details" asp-route-slug="@line.Slug" class="te-cart-name">@line.Name</a>
+                                    @if (!string.IsNullOrEmpty(line.ColorName))
+                                    {
+                                        <div class="te-cart-variant">
+                                            <span class="te-swatch-dot" style="background:@(line.ColorHex ?? "#D8A7A7")"></span> @line.ColorName
+                                        </div>
+                                    }
+                                    <div class="te-cart-unit">@Threadelle.Helpers.CurrencyFormatter.Format(line.UnitPrice) each</div>
+                                </div>
+                                <div class="te-cart-qty">
+                                    <div class="te-qty-stepper te-qty-stepper-sm">
+                                        <button type="button" class="te-qty-btn te-cart-dec" aria-label="Decrease">−</button>
+                                        <input type="number" class="te-cart-qty-input" value="@line.Quantity" min="1" max="@line.MaxQuantity" readonly />
+                                        <button type="button" class="te-qty-btn te-cart-inc" aria-label="Increase">+</button>
+                                    </div>
+                                </div>
+                                <div class="te-cart-linetotal"><span class="te-line-total">@Threadelle.Helpers.CurrencyFormatter.Format(line.LineTotal)</span></div>
+                                <button type="button" class="te-cart-remove" aria-label="Remove"><i class="fas fa-trash-can"></i></button>
+                            </div>
+                        }
+                    </div>
+
+                    <a asp-controller="Collections" asp-action="Index" class="btn btn-link mt-3"><i class="fas fa-arrow-left"></i> Continue shopping</a>
+                </div>
+
+                <!-- Summary -->
+                <div class="col-lg-4">
+                    <div class="te-summary-card">
+                        <h5>Order Summary</h5>
+                        <div class="te-summary-row"><span>Subtotal</span><strong><span id="sumSubtotal">@Threadelle.Helpers.CurrencyFormatter.Format(Model.SubTotal)</span></strong></div>
+                        <div class="te-summary-row"><span>Shipping</span><strong id="sumShipping">@(Model.Shipping == 0 ? "Free" : Threadelle.Helpers.CurrencyFormatter.Format(Model.Shipping))</strong></div>
+                        <div class="te-summary-divider"></div>
+                        <div class="te-summary-row te-summary-total"><span>Total</span><strong><span id="sumTotal">@Threadelle.Helpers.CurrencyFormatter.Format(Model.Total)</span></strong></div>
+                        <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary w-100 mt-3 btn-lg">
+                            <i class="fas fa-lock"></i> Checkout
+                        </a>
+                        <div class="te-summary-note"><i class="fas fa-heart"></i> Each piece is made and wrapped with love before it ships.</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        window.teInitCartPage();
+    </script>
+}

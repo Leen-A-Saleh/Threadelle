@@ -1,0 +1,96 @@
+@model Threadelle.Models.Coupon
+@{
+    ViewData["Title"] = "Coupon Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Coupon Details - @Model.Code</h1>
+    <div>
+        <a asp-action="Upsert" asp-route-id="@Model.Id" class="btn btn-warning shadow-sm">
+            <i class="fas fa-edit fa-sm text-white-50"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Configuration Information</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Code</th><td>@Model.Code</td></tr>
+
+                        <tr><th>Type</th><td>@Model.DiscountType</td></tr>
+                        <tr><th>Value</th><td>@Model.DiscountValue</td></tr>
+                        <tr><th>Application Scope</th><td>@Model.ApplicationType</td></tr>
+                        <tr><th>Status</th><td>@(Model.IsActive ? "Active" : "Inactive")</td></tr>
+                        <tr><th>Start Date</th><td>@(Model.StartDate?.ToString("g") ?? "Immediately")</td></tr>
+                        <tr><th>End Date</th><td>@(Model.EndDate?.ToString("g") ?? "Never")</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Usage Restrictions & Stats</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Total Usage Limit</th><td>@(Model.UsageLimit?.ToString() ?? "Unlimited")</td></tr>
+                        <tr><th>Usage Per User</th><td>@(Model.UsageLimitPerUser?.ToString() ?? "Unlimited")</td></tr>
+                        <tr><th>Current Redemptions</th><td>@Model.UsedCount</td></tr>
+                        <tr><th>Min Order Amount</th><td>@(Model.MinOrderAmount?.ToString("C") ?? "None")</td></tr>
+                        <tr><th>Max Discount Amount</th><td>@(Model.MaxDiscountAmount?.ToString("C") ?? "None")</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Redemption History</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Date Used</th>
+                        <th>User</th>
+                        <th>Order #</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.CouponUsages.Any())
+                    {
+                        foreach (var usage in Model.CouponUsages.OrderByDescending(u => u.UsedAt))
+                        {
+                            <tr>
+                                <td>@usage.UsedAt.ToString("g")</td>
+                                <td>@usage.User.FullName</td>
+                                <td><a href="/Admin/Orders/Details/@usage.OrderId">@usage.Order.OrderNumber</a></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center">No redemptions yet.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

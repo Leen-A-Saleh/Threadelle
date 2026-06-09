@@ -1,0 +1,451 @@
+@model Threadelle.ViewModels.GalleryPageVM
+@{
+    ViewData["Title"] = "Gallery";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/swiper@10/swiper-bundle.min.css" />
+    <style>
+        :root {
+            --gal-bg: #FAF8F6;
+            --gal-soft-pink: #E8C4C4;
+            --gal-dusty-rose: #C48F8F;
+            --gal-text: #4A3B3B;
+            --lb-bg: #0A0A0A;
+            --gal-radius: 24px;
+        }
+
+        body {
+            background-color: var(--gal-bg);
+            color: var(--gal-text);
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        h1, h2, h3, h4, h5, h6, .playfair {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Hero Section */
+        .gal-hero {
+            padding: 120px 20px 80px;
+            text-align: center;
+            background: linear-gradient(to bottom, #FFFFFF 0%, var(--gal-bg) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .gal-hero::before {
+            content: '';
+            position: absolute;
+            top: -50px; left: -50px;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(232,196,196,0.2) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+        .gal-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; right: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(196,143,143,0.15) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+        .gal-hero-title {
+            font-size: clamp(3rem, 6vw, 4.5rem);
+            color: var(--gal-text);
+            margin-bottom: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+        .gal-hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: var(--gal-dusty-rose);
+            font-weight: 300;
+            line-height: 1.8;
+            max-width: 650px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Full Width Masonry Grid */
+        .masonry-grid {
+            max-width: 1800px;
+            width: 92%;
+            margin: 0 auto;
+            padding: 20px 0 100px;
+            column-count: 3;
+            column-gap: 40px;
+        }
+
+        /* 
+           Responsive Grid configuration 
+           Desktop: 3 columns
+           Tablet: 2 columns
+           Mobile: 1 column
+        */
+        @@media (max-width: 1024px) { 
+            .masonry-grid { column-count: 2; column-gap: 30px; } 
+        }
+        @@media (max-width: 650px) { 
+            .masonry-grid { column-count: 1; width: 90%; column-gap: 0; } 
+        }
+
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .masonry-item.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .masonry-card {
+            border-radius: var(--gal-radius);
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            transition: box-shadow 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .masonry-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+            border-radius: var(--gal-radius);
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Hover State */
+        .masonry-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(250, 248, 246, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            padding: 30px;
+            text-align: center;
+            border-radius: var(--gal-radius);
+        }
+        
+        .masonry-card:hover {
+            box-shadow: 0 25px 60px rgba(74, 59, 59, 0.15);
+        }
+
+        .masonry-card:hover .masonry-overlay {
+            opacity: 1;
+        }
+
+        .masonry-card:hover img {
+            transform: scale(1.04);
+        }
+        
+        .masonry-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--gal-text);
+            font-weight: 400;
+            letter-spacing: 1px;
+            transform: translateY(20px);
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .masonry-card:hover .masonry-title {
+            transform: translateY(0);
+        }
+
+        /* Premium Lightbox */
+        .gal-lightbox {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--lb-bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        .gal-lightbox.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .lb-header {
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+        .lb-close {
+            background: none; border: none;
+            color: #fff; font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            opacity: 0.7;
+        }
+        .lb-close:hover { color: var(--gal-soft-pink); opacity: 1; }
+        
+        .lb-main {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 100vh;
+        }
+        
+        /* Swiper Overrides */
+        .swiper-main {
+            width: 100%;
+            height: 100%;
+        }
+        .swiper-slide {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .swiper-main img {
+            max-width: 90vw;
+            max-height: 85vh;
+            object-fit: contain;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            border-radius: 8px;
+        }
+        
+        .lb-details {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            pointer-events: none;
+            width: 90%;
+            max-width: 800px;
+        }
+        .lb-title {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .lb-desc {
+            font-size: 0.95rem;
+            color: #ccc;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .swiper-button-next, .swiper-button-prev {
+            color: rgba(255,255,255,0.4) !important;
+            transition: color 0.3s ease;
+            padding: 30px;
+        }
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            color: #fff !important;
+        }
+    </style>
+}
+
+<!-- Hero Section -->
+<header class="gal-hero">
+    <h1 class="gal-hero-title playfair">Crafted With Love</h1>
+    <p class="gal-hero-subtitle">Every piece tells a story of creativity, patience, and handmade artistry.</p>
+</header>
+
+<!-- Masonry Grid -->
+<div class="masonry-grid" id="galleryGrid">
+    @for(int i = 0; i < Model.MasonryItems.Count; i++)
+    {
+        var item = Model.MasonryItems[i];
+        <div class="masonry-item open-lightbox" data-index="@i">
+            <div class="masonry-card">
+                <img src="@item.ImageUrl" alt="@item.AltText" loading="lazy" />
+                <div class="masonry-overlay">
+                    <div class="masonry-title">@item.Title</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Luxury Lightbox -->
+<div class="gal-lightbox" id="galLightbox">
+    <div class="lb-header">
+        <div class="lb-counter playfair" id="lbCounter" style="font-size: 1.1rem; letter-spacing: 1px; opacity: 0.7;">1 / @Model.MasonryItems.Count</div>
+        <button class="lb-close" id="lbClose"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div class="lb-main">
+        <div class="swiper swiper-main" id="swiperMain">
+            <div class="swiper-wrapper" id="lbSlides">
+                @foreach(var item in Model.MasonryItems)
+                {
+                    <div class="swiper-slide">
+                        <img src="@item.ImageUrl" alt="@item.AltText" data-id="@item.Id" />
+                    </div>
+                }
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+
+        <div class="lb-details">
+            <h2 class="lb-title playfair" id="lbTitle"></h2>
+            <p class="lb-desc" id="lbDesc"></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/swiper@10/swiper-bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // --- Scroll Animations (Intersection Observer) ---
+            var observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            var observer = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.masonry-item').forEach(function(item) {
+                observer.observe(item);
+            });
+
+            // --- Lightbox ---
+            var lb = document.getElementById('galLightbox');
+            var closeBtn = document.getElementById('lbClose');
+            var lbTitle = document.getElementById('lbTitle');
+            var lbDesc = document.getElementById('lbDesc');
+            var lbCounter = document.getElementById('lbCounter');
+            
+            var mainSwiper = new Swiper('#swiperMain', {
+                spaceBetween: 50,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                keyboard: {
+                    enabled: true,
+                },
+                on: {
+                    slideChange: function () {
+                        updateDetails(this.activeIndex);
+                    }
+                }
+            });
+
+            var isFetching = false;
+            var currentDataMap = {}; // cache
+
+            function updateDetails(index) {
+                if(!mainSwiper.slides || mainSwiper.slides.length === 0) return;
+
+                var total = mainSwiper.slides.length;
+                lbCounter.textContent = (index + 1) + " / " + total;
+                
+                var activeSlideImg = mainSwiper.slides[index].querySelector('img');
+                if(!activeSlideImg) return;
+
+                var id = activeSlideImg.getAttribute('data-id');
+                var cacheKey = 'product_' + id;
+
+                // Load from cache or fetch
+                if (currentDataMap[cacheKey]) {
+                    renderDetails(currentDataMap[cacheKey]);
+                } else {
+                    lbTitle.textContent = "";
+                    lbDesc.textContent = "";
+                    
+                    fetch(`/Gallery/GetGalleryItemDetails?id=${id}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            currentDataMap[cacheKey] = data;
+                            // verify we are still on the same slide
+                            if (mainSwiper.activeIndex === index) {
+                                renderDetails(data);
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            if (mainSwiper.activeIndex === index) {
+                                lbTitle.textContent = "";
+                            }
+                        });
+                }
+            }
+
+            function renderDetails(data) {
+                lbTitle.textContent = data.title;
+                lbDesc.innerHTML = data.description || '';
+            }
+
+            // Open Lightbox
+            document.querySelectorAll('.open-lightbox').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    var index = parseInt(this.getAttribute('data-index'));
+                    
+                    lb.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                    
+                    mainSwiper.slideTo(index, 0); // instant jump
+                    updateDetails(index);
+                });
+            });
+
+            // Close Lightbox
+            function closeLightbox() {
+                lb.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+            closeBtn.addEventListener('click', closeLightbox);
+            
+            document.addEventListener('keydown', function(e) {
+                if(e.key === "Escape" && lb.classList.contains('show')) {
+                    closeLightbox();
+                }
+                if(e.key === "ArrowLeft" && lb.classList.contains('show')) {
+                    mainSwiper.slidePrev();
+                }
+                if(e.key === "ArrowRight" && lb.classList.contains('show')) {
+                    mainSwiper.slideNext();
+                }
+            });
+        });
+    </script>
+}

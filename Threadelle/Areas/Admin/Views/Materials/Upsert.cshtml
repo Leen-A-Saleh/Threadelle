@@ -1,0 +1,94 @@
+@model MaterialUpsertViewModel
+@{
+    var isEdit = Model.Id != 0;
+    ViewData["Title"] = isEdit ? "Edit Material" : "New Material";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2>@(isEdit ? "Edit Material" : "New Material")</h2>
+        <p class="te-sub">
+            @(isEdit
+                ? "Update this material's details. Price changes affect the computed price of all products that use it."
+                : "Add a raw material. PricePerUnit feeds directly into product price calculations.")
+        </p>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" asp-action="Index">
+        <i class="fas fa-arrow-left"></i> Back to list
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <form asp-action="Upsert" method="post" class="te-form-card">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-3"
+                 role="alert" style="font-size:.85rem;"></div>
+
+            <!-- Name -->
+            <div class="mb-3">
+                <label asp-for="Name" class="te-form-label">Name <span style="color:#C0392B">*</span></label>
+                <input asp-for="Name" class="form-control" placeholder="e.g. Cotton Yarn" autofocus />
+                <span asp-validation-for="Name" class="text-danger" style="font-size:.8rem;"></span>
+            </div>
+
+            <!-- Unit -->
+            <div class="mb-3">
+                <label asp-for="Unit" class="te-form-label">Unit <span style="color:#C0392B">*</span></label>
+                <input asp-for="Unit" class="form-control" placeholder="e.g. gram, metre, piece, spool" />
+                <span asp-validation-for="Unit" class="text-danger" style="font-size:.8rem;"></span>
+                <div class="te-row-sub mt-1">How the stock quantity and price are measured.</div>
+            </div>
+
+            <!-- Price & Stock row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="PricePerUnit" class="te-form-label">
+                        Price per unit (JOD) <span style="color:#C0392B">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background:var(--te-soft-beige);border-color:var(--te-border);color:var(--te-text-muted);font-size:.85rem;">JOD</span>
+                        <input asp-for="PricePerUnit" type="number" step="0.001" min="0"
+                               class="form-control" placeholder="0.000" />
+                    </div>
+                    <span asp-validation-for="PricePerUnit" class="text-danger" style="font-size:.8rem;"></span>
+                    <div class="te-row-sub mt-1">Used to compute product prices automatically.</div>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="StockQuantity" class="te-form-label">
+                        Stock quantity <span style="color:#C0392B">*</span>
+                    </label>
+                    <div class="input-group">
+                        <input asp-for="StockQuantity" type="number" step="0.01" min="0"
+                               class="form-control" placeholder="0" />
+                        <span class="input-group-text" style="background:var(--te-soft-beige);border-color:var(--te-border);color:var(--te-text-muted);font-size:.85rem;">@Model.Unit</span>
+                    </div>
+                    <span asp-validation-for="StockQuantity" class="text-danger" style="font-size:.8rem;"></span>
+                </div>
+            </div>
+
+            <!-- Pricing note -->
+            <div class="d-flex gap-2 align-items-start p-3 mb-4"
+                 style="background:var(--te-pale-pink);border-radius:12px;border-left:3px solid var(--te-dusty-rose);">
+                <i class="fas fa-circle-info mt-1" style="color:var(--te-dusty-rose);flex-shrink:0;"></i>
+                <div style="font-size:.83rem;color:var(--te-text-secondary);line-height:1.6;">
+                    <strong style="color:var(--te-deep-rose);">How pricing works:</strong>
+                    Product price = (WorkHours × HourRate) + Σ (QuantityUsed × PricePerUnit).
+                    Updating this value immediately changes the computed price on every product that uses this material.
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 pt-3 border-top">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-floppy-disk"></i>
+                    @(isEdit ? "Save changes" : "Create material")
+                </button>
+                <a class="btn btn-outline-primary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

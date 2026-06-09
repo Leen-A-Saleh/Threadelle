@@ -1,0 +1,140 @@
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var requestToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    var currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
+    string NavActive(string c) => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    var adminName = User.Identity?.Name ?? "Admin";
+    var initial = string.IsNullOrWhiteSpace(adminName) ? "A" : adminName.Substring(0, 1).ToUpper();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · ThreadElle Admin</title>
+    <meta name="request-verification-token" content="@requestToken" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/storefront.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="te-admin">
+    <div class="te-admin-shell">
+
+        <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+        <aside class="te-admin-sidebar" id="adminSidebar">
+            <div class="te-admin-brand">
+                <span class="brand-name">ThreadElle</span>
+                <span class="brand-tagline">Admin Studio</span>
+            </div>
+
+            <nav class="te-admin-nav">
+                <a class="te-admin-link @NavActive("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><i class="fas fa-gauge-high"></i> Dashboard</a>
+                <a class="te-admin-link @NavActive("Products")" asp-area="Admin" asp-controller="Products" asp-action="Index"><i class="fas fa-gem"></i> Products</a>
+                <a class="te-admin-link @NavActive("Categories")" asp-area="Admin" asp-controller="Categories" asp-action="Index"><i class="fas fa-layer-group"></i> Categories</a>
+                <a class="te-admin-link @NavActive("Materials")" asp-area="Admin" asp-controller="Materials" asp-action="Index"><i class="fas fa-scroll"></i> Materials</a>
+                <a class="te-admin-link @NavActive("Colors")" asp-area="Admin" asp-controller="Colors" asp-action="Index"><i class="fas fa-palette"></i> Colors</a>
+
+                <div class="te-admin-nav-divider"></div>
+
+                <a class="te-admin-link @NavActive("Orders")" asp-area="Admin" asp-controller="Orders" asp-action="Index"><i class="fas fa-bag-shopping"></i> Orders</a>
+                <a class="te-admin-link @NavActive("Coupons")" asp-area="Admin" asp-controller="Coupons" asp-action="Index"><i class="fas fa-ticket-alt"></i> Coupons</a>
+                <a class="te-admin-link @NavActive("CustomOrders")" asp-area="Admin" asp-controller="CustomOrders" asp-action="Index"><i class="fas fa-wand-magic-sparkles"></i> Custom Orders</a>
+                <a class="te-admin-link @NavActive("Testimonials")" asp-area="Admin" asp-controller="Testimonials" asp-action="Index"><i class="fas fa-comment-dots"></i> Testimonials</a>
+
+                <div class="te-admin-nav-divider"></div>
+
+                <a class="te-admin-link @NavActive("Users")" asp-area="Admin" asp-controller="Users" asp-action="Index"><i class="fas fa-users"></i> Users</a>
+                <a class="te-admin-link @NavActive("Notifications")" asp-area="Admin" asp-controller="Notifications" asp-action="Index"><i class="fas fa-bell"></i> Notifications</a>
+                <a class="te-admin-link @NavActive("RecycleBin")" asp-area="Admin" asp-controller="RecycleBin" asp-action="Index"><i class="fas fa-trash-can"></i> Recycle Bin</a>
+            </nav>
+
+            <div class="te-admin-sidebar-foot">
+                <a class="te-admin-viewstore" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+                    <i class="fas fa-store"></i> View Store
+                </a>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                    <button type="submit" class="te-admin-logout"><i class="fas fa-right-from-bracket"></i> Logout</button>
+                </form>
+            </div>
+        </aside>
+        <div class="te-admin-backdrop" id="adminBackdrop"></div>
+
+        <!-- ── MAIN ────────────────────────────────────────────── -->
+        <div class="te-admin-main">
+            <header class="te-admin-topbar">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="te-admin-sidebar-toggle" id="adminSidebarToggle" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+                    <h1 class="te-admin-page-title">@(ViewData["Title"] ?? "Dashboard")</h1>
+                </div>
+
+                <div class="te-admin-topbar-right">
+                    <!-- Notification bell (wired by site.js, same pattern as the storefront) -->
+                    <button type="button" class="te-icon-btn" id="notifToggle" aria-label="Notifications"
+                            data-bs-toggle="offcanvas" data-bs-target="#notifCanvas">
+                        <i class="far fa-bell"></i>
+                        <span class="te-icon-badge d-none" id="notifBadge">0</span>
+                    </button>
+                    <div class="te-admin-user">
+                        <span class="te-account-avatar-initial">@initial</span>
+                        <span class="d-none d-md-inline">@adminName</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- FLASH TOASTS -->
+            <div class="te-toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="true">
+                @if (TempData["FlashMessage"] != null)
+                {
+                    <div class="te-toast te-toast-@(TempData["FlashType"] ?? "success")" data-autoshow="true">
+                        <i class="fas fa-heart"></i>
+                        <span>@TempData["FlashMessage"]</span>
+                        <button class="te-toast-close" aria-label="Close">&times;</button>
+                    </div>
+                }
+            </div>
+
+            <main class="te-admin-content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS OFFCANVAS (shared site.js wiring) ─────── -->
+    <div class="offcanvas offcanvas-end te-offcanvas" tabindex="-1" id="notifCanvas" aria-labelledby="notifCanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="notifCanvasLabel">
+                <i class="far fa-bell me-2" style="color:var(--te-dusty-rose);"></i>Notifications
+            </h5>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="te-notif-readall" id="notifReadAll" style="font-size:.78rem;">Mark all read</button>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="offcanvas-body p-0" id="notifCanvasBody">
+            <div class="text-center py-5"><i class="fas fa-spinner fa-spin" style="color:var(--te-blush);font-size:1.5rem;"></i></div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+    <script>
+        window.TE = {
+            token: document.querySelector('meta[name="request-verification-token"]').content,
+            isAuthenticated: true,
+            isAdmin: true
+        };
+    </script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

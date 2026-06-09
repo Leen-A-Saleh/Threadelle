@@ -1,0 +1,199 @@
+@* _OrderStatusCard — all branching uses ViewModel booleans. Zero raw C# in HTML output. *@
+@using Threadelle.Models
+@using Threadelle.Helpers
+@model Threadelle.ViewModels.CustomOrderDetailsViewModel
+
+@if (Model.IsChangesRequested)
+{
+    <div class="te-status-card te-status-card--warning mb-4">
+        <div class="te-status-card-icon"><i class="fas fa-pencil-ruler"></i></div>
+        <div class="te-status-card-content">
+            <h4 class="te-status-card-title">A Few Adjustments Needed</h4>
+            <p class="te-status-card-sub">
+                Leen has reviewed your request with care and would love a few tweaks before she begins crafting.
+                Please read her note below and update your request.
+            </p>
+            @if (!string.IsNullOrWhiteSpace(Model.Order.AdminNotes))
+            {
+                <div class="te-admin-note-bubble te-admin-note-bubble--amber">
+                    <div class="te-admin-note-from">
+                        <span class="te-admin-avatar">L</span>
+                        <span>Note from <strong>Leen</strong></span>
+                    </div>
+                    <p class="te-admin-note-text">@Model.Order.AdminNotes</p>
+                </div>
+            }
+            <div class="te-sc-actions">
+                <a asp-controller="CustomOrder" asp-action="Edit" asp-route-id="@Model.Order.Id"
+                   class="te-sc-btn te-sc-btn--primary">
+                    <i class="fas fa-rotate-left me-2"></i>Update &amp; Resubmit
+                </a>
+                <span class="te-sc-hint"><i class="fas fa-info-circle me-1"></i>Your updated request goes straight back to Leen.</span>
+            </div>
+        </div>
+    </div>
+}
+else if (Model.IsAwaitingPayment)
+{
+    <div class="te-status-card te-status-card--success mb-4">
+        <div class="te-status-card-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="te-status-card-content">
+            <h4 class="te-status-card-title">Your Commission is Approved! 🎉</h4>
+            <p class="te-status-card-sub">
+                Wonderful news — Leen would love to create this for you.
+                Review your quote and secure your commission to begin production.
+            </p>
+            @if (!string.IsNullOrWhiteSpace(Model.Order.AdminNotes))
+            {
+                <div class="te-admin-note-bubble te-admin-note-bubble--green">
+                    <div class="te-admin-note-from">
+                        <span class="te-admin-avatar te-admin-avatar--green">L</span>
+                        <span>Personal note from <strong>Leen</strong></span>
+                    </div>
+                    <p class="te-admin-note-text">@Model.Order.AdminNotes</p>
+                </div>
+            }
+            <div class="te-quote-figures">
+                @if (Model.Order.EstimatedPrice.HasValue)
+                {
+                    <div class="te-quote-fig">
+                        <span class="te-quote-fig-val">@Model.Order.EstimatedPrice.Value.ToString("0.00")</span>
+                        <span class="te-quote-fig-unit">JOD</span>
+                        <span class="te-quote-fig-label">Your custom quote</span>
+                    </div>
+                }
+                @if (Model.Order.EstimatedDays.HasValue)
+                {
+                    <div class="te-quote-fig">
+                        <span class="te-quote-fig-val">~@Model.Order.EstimatedDays</span>
+                        <span class="te-quote-fig-unit">days</span>
+                        <span class="te-quote-fig-label">Estimated production</span>
+                    </div>
+                }
+            </div>
+            <div class="te-sc-actions">
+                <a asp-controller="CustomOrder" asp-action="Pay" asp-route-id="@Model.Order.Id"
+                   class="te-sc-btn te-sc-btn--success">
+                    <i class="fas fa-credit-card me-2"></i>Secure Your Commission
+                </a>
+                <form asp-action="DeclineQuote" asp-route-id="@Model.Order.Id" method="post" class="d-inline"
+                      onsubmit="return confirm('Decline this quote?')">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="te-sc-btn te-sc-btn--ghost">Decline Quote</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+else if (Model.IsInProduction)
+{
+    <div class="te-status-card te-status-card--rose mb-4">
+        <div class="te-status-card-icon"><i class="fas fa-hand-sparkles"></i></div>
+        <div class="te-status-card-content">
+            <h4 class="te-status-card-title">Being Lovingly Crafted 🧶</h4>
+            <p class="te-status-card-sub">
+                Leen has started working on your commission. Each stitch is placed with intention — follow the progress below.
+            </p>
+            <div class="te-prod-tracker">
+                <div class="te-prod-line-bg"></div>
+                <div class="te-prod-line-fill" style="width:@(Model.ProgressLinePercent)%"></div>
+                @for (int i = 0; i < Model.ProductionStages.Count; i++)
+                {
+                    var stage    = Model.ProductionStages[i];
+                    var isDone   = i < Model.ActiveStageIndex;
+                    var isActive = i == Model.ActiveStageIndex;
+                    var pct      = Model.ProductionStages.Count > 1
+                                   ? (int)Math.Round(i * 100.0 / (Model.ProductionStages.Count - 1)) : 0;
+                    var cls      = isDone ? "is-done" : (isActive ? "is-active" : "");
+                    var ico      = stage switch {
+                        "Design"        => "fa-pencil-ruler",
+                        "Materials"     => "fa-layer-group",
+                        "Crafting"      => "fa-hand-sparkles",
+                        "Quality Check" => "fa-search",
+                        "Packaging"     => "fa-box-open",
+                        "Completed"     => "fa-heart",
+                        _               => "fa-circle-dot"
+                    };
+                    <div class="te-prod-step @cls" style="left:@(pct)%">
+                        <div class="te-prod-dot">
+                            @if (isDone) { <i class="fas fa-check"></i> }
+                            else { <i class="fas @ico"></i> }
+                        </div>
+                        <span class="te-prod-label">@stage</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else if (Model.IsDelivered)
+{
+    <div class="te-status-card te-status-card--purple mb-4">
+        <div class="te-status-card-icon"><i class="fas fa-gift"></i></div>
+        <div class="te-status-card-content">
+            <h4 class="te-status-card-title">Your Keepsake Has Arrived 🎁</h4>
+            <p class="te-status-card-sub">
+                Your handmade commission has been delivered. We hope it brings you — and whoever you're gifting it to — years of joy.
+            </p>
+        </div>
+    </div>
+}
+else if (Model.IsCompleted)
+{
+    <div class="te-status-card te-status-card--purple mb-4">
+        <div class="te-status-card-icon"><i class="fas fa-heart"></i></div>
+        <div class="te-status-card-content">
+            <h4 class="te-status-card-title">Commission Complete ✨</h4>
+            <p class="te-status-card-sub">
+                Your beautiful piece has been completed. Thank you for trusting Threadelle with your vision.
+            </p>
+        </div>
+    </div>
+}
+else if (Model.IsRejected)
+{
+    <div class="te-status-card te-status-card--muted mb-4">
+        <div class="te-status-card-icon"><i class="fas fa-heart-crack"></i></div>
+        <div class="te-status-card-content">
+            <h4 class="te-status-card-title">Commission Not Available</h4>
+            @if (!string.IsNullOrWhiteSpace(Model.Order.AdminNotes))
+            {
+                <div class="te-admin-note-bubble">
+                    <div class="te-admin-note-from">
+                        <span class="te-admin-avatar">L</span>
+                        <span>Note from <strong>Leen</strong></span>
+                    </div>
+                    <p class="te-admin-note-text">@Model.Order.AdminNotes</p>
+                </div>
+            }
+            else
+            {
+                <p class="te-status-card-sub">
+                    We're unable to fulfill this commission at this time. Please feel free to start a new request.
+                </p>
+            }
+            <div class="te-sc-actions mt-3">
+                <a asp-controller="CustomOrder" asp-action="Create" class="te-sc-btn te-sc-btn--primary">
+                    <i class="fas fa-plus me-2"></i>Start a New Request
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="te-status-card te-status-card--neutral mb-4">
+        <div class="te-status-card-icon"><i class="fas fa-hourglass-half"></i></div>
+        <div class="te-status-card-content">
+            <h4 class="te-status-card-title">In Leen's Hands</h4>
+            <p class="te-status-card-sub">
+                Your request has been received and Leen is reviewing the details personally.
+                You'll be notified as soon as your quote is ready — usually within 1–2 business days.
+            </p>
+            <div class="te-sc-hint-row">
+                <i class="fas fa-bell me-2" style="color:var(--te-dusty-rose);"></i>
+                <span>We'll notify you the moment your quote is ready.</span>
+            </div>
+        </div>
+    </div>
+}

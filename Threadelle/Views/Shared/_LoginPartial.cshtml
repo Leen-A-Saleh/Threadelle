@@ -1,0 +1,56 @@
+@using Microsoft.AspNetCore.Identity
+@using Threadelle.Models
+@using Threadelle.Helpers
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="nav-link te-btn-admin-nav" style="font-family: var(--font-body); font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--te-rose-mauve) !important; border: 1.5px solid var(--te-dusty-rose); border-radius: var(--r-pill); padding: .4rem 1.1rem !important; margin-right: .6rem; transition: var(--transition); display: inline-flex; align-items: center;" onmouseover="this.style.background='var(--te-dusty-rose)'; this.style.color='#fff'" onmouseout="this.style.background='transparent'; this.style.color='var(--te-rose-mauve)'">Admin</a>
+    }
+
+    <!-- Notifications drawer trigger -->
+    <button class="te-icon-btn" type="button" id="notifToggle"
+            data-bs-toggle="offcanvas" data-bs-target="#notifCanvas" aria-label="Notifications">
+        <i class="far fa-bell"></i>
+        <span class="te-icon-badge d-none" id="notifBadge">0</span>
+    </button>
+
+    <!-- Account dropdown -->
+    <div class="dropdown te-account-dropdown">
+        <button class="te-account-btn" type="button" id="accountToggle" data-bs-toggle="dropdown" aria-expanded="false">
+            @if (!string.IsNullOrEmpty(User.ProfileImage()))
+            {
+                <img src="@User.ProfileImage()" class="te-account-avatar" alt="" />
+            }
+            else
+            {
+                <span class="te-account-avatar te-account-avatar-initial">@User.FirstName().Substring(0,1).ToUpper()</span>
+            }
+            <span class="te-account-name d-none d-lg-inline">@User.FirstName()</span>
+            <i class="fas fa-chevron-down ms-1" style="font-size:.6rem;"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end te-account-menu" aria-labelledby="accountToggle">
+            <li class="te-account-greeting">
+                <span class="d-block">Hello,</span>
+                <strong>@User.DisplayName()</strong>
+            </li>
+            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Orders"><i class="fas fa-box me-2"></i>My Orders</a></li>
+            <li><a class="dropdown-item" asp-controller="Profile" asp-action="CustomOrders"><i class="fas fa-palette me-2"></i>Custom Requests</a></li>
+            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Testimonials"><i class="fas fa-comment-dots me-2"></i>My Testimonials</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post">
+                    <button type="submit" class="dropdown-item"><i class="fas fa-right-from-bracket me-2"></i>Sign Out</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <button type="button" class="nav-link te-btn-login" id="navSignInBtn">Sign In</button>
+}

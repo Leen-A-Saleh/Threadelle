@@ -1,0 +1,61 @@
+@using Threadelle.Models
+@using Threadelle.Helpers
+@model Threadelle.ViewModels.CustomOrderDetailsViewModel
+
+<div class="te-tl-card">
+    <div class="te-tl-card-head">
+        <i class="fas fa-route me-2" style="color:var(--te-dusty-rose);"></i>Your Journey
+    </div>
+
+    @if (Model.Order.StatusHistory.Any())
+    {
+        <div class="te-luxury-timeline px-3 pt-3">
+            @foreach (var h in Model.Order.StatusHistory)
+            {
+                var isAdmin = h.ChangedBy != "System"
+                           && h.ChangedBy != Model.Order.User?.FullName
+                           && h.ChangedBy != Model.Order.UserId;
+                var lineClass = isAdmin ? "te-tl-item--admin" : "te-tl-item--customer";
+
+                <div class="te-tl-item @lineClass">
+                    <div class="te-tl-dot-wrap">
+                        <div class="te-tl-dot te-badge-@h.ToStatus.Badge()">
+                            @if (isAdmin) { <i class="fas fa-star"></i> }
+                        </div>
+                    </div>
+                    <div class="te-tl-bubble">
+                        <div class="te-tl-bubble-head">
+                            <span class="te-tl-who">@(isAdmin ? "Leen" : "You")</span>
+                            <span class="te-tl-status-label">→ @h.ToStatus.Friendly()</span>
+                            <span class="te-tl-when">@h.ChangedAt.ToLocalTime().ToString("MMM d · h:mm tt")</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(h.Note) && h.ChangedBy != "System")
+                        {
+                            <p class="te-tl-note">@h.Note</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="te-tl-item te-tl-item--current">
+                <div class="te-tl-dot-wrap">
+                    <div class="te-tl-dot te-badge-@Model.Order.Status.Badge() is-pulse"></div>
+                </div>
+                <div class="te-tl-bubble te-tl-bubble--current">
+                    <div class="te-tl-bubble-head">
+                        <span class="te-tl-who" style="color:var(--te-dusty-rose);">Now</span>
+                        <span class="te-tl-status-label" style="color:var(--te-deep-rose);font-weight:700;">@Model.CurrentStage</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="px-3 py-4 text-center" style="color:var(--te-text-muted);font-size:.83rem;">
+            <i class="fas fa-route d-block mb-2" style="font-size:1.5rem;opacity:.3;"></i>
+            Your journey begins here.
+        </div>
+    }
+</div>
+

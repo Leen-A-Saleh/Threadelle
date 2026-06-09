@@ -1,0 +1,492 @@
+@model Threadelle.Models.CustomOrder
+@using Threadelle.Helpers
+@{
+    ViewData["Title"] = Model.Title ?? Model.CustomOrderNumber;
+
+    bool canApprove        = Model.Status is CustomOrderStatus.Pending
+                                          or CustomOrderStatus.Reviewing
+                                          or CustomOrderStatus.UnderReview
+                                          or CustomOrderStatus.ChangesRequested;
+    bool canRequestChanges = Model.Status is CustomOrderStatus.Pending
+                                          or CustomOrderStatus.Reviewing
+                                          or CustomOrderStatus.UnderReview;
+    bool canReject         = Model.Status is not CustomOrderStatus.Rejected
+                                         and not CustomOrderStatus.Completed
+                                         and not CustomOrderStatus.Delivered;
+    bool canUpdateStatus   = Model.Status is CustomOrderStatus.AwaitingPayment
+                                          or CustomOrderStatus.Designing
+                                          or CustomOrderStatus.InProduction
+                                          or CustomOrderStatus.InProgress;
+}
+
+<div class="mb-3">
+    <a asp-area="Admin" asp-controller="CustomOrders" asp-action="Index" class="te-admin-btn te-admin-btn-sm te-admin-btn-outline">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="row g-3">
+
+    <!-- ── LEFT: Request Details ─────────────────────────────── -->
+    <div class="col-lg-8">
+
+        <div class="te-admin-card mb-3">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-palette me-2" style="color:var(--te-dusty-rose);"></i>@(Model.Title ?? Model.CustomOrderNumber)</h5>
+                <span class="te-badge te-badge-@Model.Status.Badge()">@Model.Status.Friendly()</span>
+            </div>
+            <div class="te-admin-card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-4">
+                        <div class="te-admin-label">Order #</div>
+                        <strong>@Model.CustomOrderNumber</strong>
+                    </div>
+                    @if (Model.Category != null)
+                    {
+                        <div class="col-sm-4">
+                            <div class="te-admin-label">Category</div>
+                            <span>@Model.Category.Name</span>
+                        </div>
+                    }
+                    @if (Model.Budget.HasValue)
+                    {
+                        <div class="col-sm-4">
+                            <div class="te-admin-label">Customer Budget</div>
+                            <span>@Model.Budget.Value.ToString("0.00") JOD</span>
+                        </div>
+                    }
+                    @if (Model.EstimatedPrice.HasValue)
+                    {
+                        <div class="col-sm-4">
+                            <div class="te-admin-label">Quoted Price</div>
+                            <strong style="color:#22c55e;font-size:1rem;">@Model.EstimatedPrice.Value.ToString("0.00") JOD</strong>
+                        </div>
+                    }
+                    @if (Model.EstimatedDays.HasValue)
+                    {
+                        <div class="col-sm-4">
+                            <div class="te-admin-label">Est. Days</div>
+                            <span>~@Model.EstimatedDays days</span>
+                        </div>
+                    }
+                    @if (Model.Deadline.HasValue)
+                    {
+                        <div class="col-sm-4">
+                            <div class="te-admin-label">Customer Deadline</div>
+                            <span>@Model.Deadline.Value.ToString("MMM d, yyyy")</span>
+                        </div>
+                    }
+                    <div class="col-sm-4">
+                        <div class="te-admin-label">Submitted</div>
+                        <span>@Model.CreatedAt.ToString("MMM d, yyyy")</span>
+                    </div>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <div class="col-sm-4">
+                            <div class="te-admin-label">Last Updated</div>
+                            <span>@Model.UpdatedAt.Value.ToString("MMM d, yyyy")</span>
+                        </div>
+                    }
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Model.AdminNotes))
+                {
+                    <div class="p-3 rounded-3 mb-3" style="background:var(--te-light-blush);border-left:3px solid var(--te-dusty-rose);">
+                        <div class="te-admin-label mb-1">Last Note to Customer</div>
+                        <p style="margin:0;font-size:.875rem;color:var(--te-text-secondary);white-space:pre-line;">@Model.AdminNotes</p>
+                    </div>
+                }
+
+                @if (Model.Colors != null && Model.Colors.Any())
+                {
+                    <div class="mb-3">
+                        <div class="te-admin-label mb-1">Requested Colors</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var cc in Model.Colors)
+                            {
+                                <span style="display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .65rem;border-radius:20px;background:var(--te-light-blush);font-size:.78rem;">
+                                    @if (!string.IsNullOrWhiteSpace(cc.Color?.HexCode))
+                                    {
+                                        <span style="width:11px;height:11px;border-radius:50%;background:@cc.Color.HexCode;border:1px solid rgba(0,0,0,.15);flex-shrink:0;"></span>
+                                    }
+                                    @cc.Color?.Name
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (Model.Images != null && Model.Images.Any())
+                {
+                    <div>
+                        <div class="te-admin-label mb-1">Reference Images</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var img in Model.Images)
+                            {
+                                <a href="@img.ImageUrl" target="_blank">
+                                    <img src="@img.ImageUrl" style="width:88px;height:88px;object-fit:cover;border-radius:10px;border:1px solid var(--te-border);" alt="" />
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Activity log -->
+        @if (Model.StatusHistory != null && Model.StatusHistory.Any())
+        {
+            <div class="te-admin-card">
+                <div class="te-admin-card-head">
+                    <h5><i class="fas fa-clock-rotate-left me-2" style="color:var(--te-dusty-rose);"></i>Activity Log</h5>
+                </div>
+                <div class="te-admin-card-body p-0">
+                    <ul class="te-timeline">
+                        @foreach (var h in Model.StatusHistory)
+                        {
+                            <li class="te-timeline-item">
+                                <span class="te-timeline-dot te-badge-@h.ToStatus.Badge()"></span>
+                                <div class="te-timeline-body">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span class="te-badge te-badge-@h.FromStatus.Badge()" style="font-size:.7rem;">@h.FromStatus.Friendly()</span>
+                                        <i class="fas fa-arrow-right" style="color:var(--te-text-muted);font-size:.7rem;"></i>
+                                        <span class="te-badge te-badge-@h.ToStatus.Badge()" style="font-size:.7rem;">@h.ToStatus.Friendly()</span>
+                                    </div>
+                                    <div class="te-row-sub mt-1">
+                                        @h.ChangedAt.ToString("MMM d, yyyy · h:mm tt") · by @h.ChangedBy
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(h.Note))
+                                    {
+                                        <div class="te-timeline-note">@h.Note</div>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ── RIGHT: Customer + Action Panels ───────────────────── -->
+    <div class="col-lg-4">
+
+        <!-- Customer -->
+        <div class="te-admin-card mb-3">
+            <div class="te-admin-card-head"><h5><i class="fas fa-user me-2" style="color:var(--te-dusty-rose);"></i>Customer</h5></div>
+            <div class="te-admin-card-body">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="te-account-avatar-initial" style="flex-shrink:0;">
+                        @(Model.User?.FullName?.Substring(0,1).ToUpper() ?? "?")
+                    </span>
+                    <div>
+                        <div class="te-row-title">@(Model.User?.FullName ?? "Unknown")</div>
+                        <div class="te-row-sub">@(Model.User?.Email ?? "")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── APPROVE ── -->
+        @if (canApprove)
+        {
+            <div class="te-admin-card mb-3" style="border-top:3px solid #22c55e;">
+                <div class="te-admin-card-head">
+                    <h5 style="color:#22c55e;font-size:.95rem;"><i class="fas fa-circle-check me-2"></i>Approve with Quote</h5>
+                </div>
+                <div class="te-admin-card-body">
+                    <form method="post" asp-area="Admin" asp-controller="CustomOrders" asp-action="Approve" asp-route-id="@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="te-admin-label">Price (JOD) <span class="text-danger">*</span></label>
+                            <input type="number" name="estimatedPrice" step="0.01" min="0.01" required
+                                   class="te-admin-ctrl"
+                                   value="@(Model.EstimatedPrice?.ToString("0.00") ?? "")"
+                                   placeholder="0.00" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="te-admin-label">Estimated days</label>
+                            <input type="number" name="estimatedDays" min="1" class="te-admin-ctrl"
+                                   value="@(Model.EstimatedDays?.ToString() ?? "")" placeholder="e.g. 14" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="te-admin-label">Message to customer</label>
+                            <textarea name="adminNotes" class="te-admin-ctrl" rows="3"
+                                      placeholder="Tell her what you'll create…">@Model.AdminNotes</textarea>
+                        </div>
+                        <button type="submit" class="te-admin-btn w-100"
+                                style="background:#22c55e;color:#fff;border-color:#22c55e;">
+                            <i class="fas fa-circle-check me-2"></i>Approve &amp; Send Quote
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- ── REQUEST CHANGES ── -->
+        @if (canRequestChanges)
+        {
+            <div class="te-admin-card mb-3" style="border-top:3px solid #f59e0b;">
+                <div class="te-admin-card-head">
+                    <h5 style="color:#f59e0b;font-size:.95rem;"><i class="fas fa-rotate-left me-2"></i>Request Changes</h5>
+                </div>
+                <div class="te-admin-card-body">
+                    <form method="post" asp-area="Admin" asp-controller="CustomOrders" asp-action="RequestChanges" asp-route-id="@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="te-admin-label">What needs to change? <span class="text-danger">*</span></label>
+                            <textarea name="adminNotes" class="te-admin-ctrl" rows="3" required
+                                      placeholder="Describe the adjustments needed…"></textarea>
+                        </div>
+                        <button type="submit" class="te-admin-btn w-100"
+                                style="background:#f59e0b;color:#fff;border-color:#f59e0b;">
+                            <i class="fas fa-rotate-left me-2"></i>Request Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- ── UPDATE PROGRESS (post-payment) ── -->
+        @if (canUpdateStatus)
+        {
+            var progressStatuses = new[] {
+                CustomOrderStatus.Designing,
+                CustomOrderStatus.InProduction,
+                CustomOrderStatus.InProgress,
+                CustomOrderStatus.QualityCheck,
+                CustomOrderStatus.Packaging,
+                CustomOrderStatus.Delivered,
+                CustomOrderStatus.Completed
+            };
+            <div class="te-admin-card mb-3" style="border-top:3px solid var(--te-dusty-rose);">
+                <div class="te-admin-card-head">
+                    <h5 style="font-size:.95rem;"><i class="fas fa-arrows-rotate me-2" style="color:var(--te-dusty-rose);"></i>Update Progress</h5>
+                </div>
+                <div class="te-admin-card-body">
+                    <form method="post" asp-area="Admin" asp-controller="CustomOrders" asp-action="UpdateStatus" asp-route-id="@Model.Id" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="te-admin-label">New Status</label>
+                            <select name="status" id="updateStatusSelect" class="te-admin-ctrl">
+                                @foreach (var s in progressStatuses)
+                                {
+                                    <option value="@((int)s)" selected="@(s == Model.Status)">@s.Friendly()</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div id="completedStatusFields" style="display:none; background: var(--te-light-blush); padding: 15px; border-radius: 12px; margin-bottom: 1rem; border: 1px dashed var(--te-dusty-rose);">
+                            <div class="mb-3">
+                                <label class="te-admin-label">Finished Product Photos (Optional)</label>
+                                <input type="file" name="finishedImages" multiple accept="image/*" class="te-admin-ctrl form-control" />
+                                <small class="text-muted d-block mt-1">Upload the final photos of what was crafted.</small>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="showInGalleryToggle" name="showInGallery" value="true">
+                                <label class="form-check-label" for="showInGalleryToggle" style="font-size: .85rem; font-weight: 500; color: var(--te-text-dark);">
+                                    Show in Public Completed Gallery
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="te-admin-label">Note to customer</label>
+                            <textarea name="note" class="te-admin-ctrl" rows="2"
+                                      placeholder="Optional update…"></textarea>
+                        </div>
+                        <button type="submit" class="te-admin-btn te-admin-btn-primary w-100">
+                            <i class="fas fa-paper-plane me-2"></i>Update &amp; Notify
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const statusSelect = document.getElementById("updateStatusSelect");
+                    const completedFields = document.getElementById("completedStatusFields");
+                    const finishedImagesInput = document.querySelector('input[name="finishedImages"]');
+                    
+                    function toggleCompletedFields() {
+                        if (statusSelect.value == "@((int)CustomOrderStatus.Completed)" || statusSelect.value == "@((int)CustomOrderStatus.Delivered)") {
+                            completedFields.style.display = "block";
+                            finishedImagesInput.required = false;
+                        } else {
+                            completedFields.style.display = "none";
+                            finishedImagesInput.required = false;
+                        }
+                    }
+
+                    if(statusSelect && completedFields) {
+                        statusSelect.addEventListener("change", toggleCompletedFields);
+                        toggleCompletedFields();
+                    }
+                });
+            </script>
+        }
+
+        <!-- ── REJECT ── -->
+        @if (canReject)
+        {
+            <div class="te-admin-card mb-3" style="border-top:3px solid #ef4444;">
+                <div class="te-admin-card-head">
+                    <h5 style="color:#ef4444;font-size:.95rem;"><i class="fas fa-xmark me-2"></i>Reject Request</h5>
+                </div>
+                <div class="te-admin-card-body">
+                    <form method="post" asp-area="Admin" asp-controller="CustomOrders" asp-action="Reject" asp-route-id="@Model.Id"
+                          onsubmit="return confirm('Reject this custom order and notify the customer?')">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="te-admin-label">Reason (optional)</label>
+                            <textarea name="adminNotes" class="te-admin-ctrl" rows="2"
+                                      placeholder="Briefly explain why…"></textarea>
+                        </div>
+                        <button type="submit" class="te-admin-btn w-100"
+                                style="background:#ef4444;color:#fff;border-color:#ef4444;">
+                            <i class="fas fa-xmark me-2"></i>Reject &amp; Notify Customer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- ── GALLERY MANAGEMENT ── -->
+        @if (Model.Status == CustomOrderStatus.Completed || Model.Status == CustomOrderStatus.Delivered)
+        {
+            <div class="te-admin-card mb-3" style="border-top:3px solid #8b5cf6;">
+                <div class="te-admin-card-head d-flex justify-content-between align-items-center">
+                    <h5 style="color:#8b5cf6;font-size:.95rem; margin: 0;"><i class="fas fa-images me-2"></i>Gallery Management</h5>
+                </div>
+                <div class="te-admin-card-body">
+                    <form method="post" asp-area="Admin" asp-controller="CustomOrders" asp-action="UpdateGallerySettings" asp-route-id="@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="manageShowInGallery" name="showInGallery" value="true" @(Model.ShowInGallery ? "checked" : "")>
+                            <label class="form-check-label" for="manageShowInGallery" style="font-size: .85rem; font-weight: 500;">
+                                Show in Public Gallery
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="te-admin-label">Public Description (Optional)</label>
+                            <textarea name="galleryDescription" class="te-admin-ctrl" rows="3" placeholder="Tell the story of this custom piece…">@Model.GalleryDescription</textarea>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="manageIsGalleryFeatured" name="isGalleryFeatured" value="true" @(Model.IsGalleryFeatured ? "checked" : "")>
+                            <label class="form-check-label" for="manageIsGalleryFeatured" style="font-size: .85rem; font-weight: 500;">
+                                Featured in Gallery Showcase
+                            </label>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center gap-2">
+                            <label class="te-admin-label mb-0" style="width: 120px;">Gallery Order:</label>
+                            <input name="galleryDisplayOrder" class="te-admin-ctrl form-control-sm" type="number" style="width: 80px;" value="@Model.GalleryDisplayOrder" />
+                        </div>
+                        <button type="submit" class="te-admin-btn te-admin-btn-outline w-100 mb-4" style="color:#8b5cf6; border-color:#8b5cf6;">
+                            Save Settings
+                        </button>
+                    </form>
+
+                    <h6 class="te-admin-label mb-3 border-bottom pb-2">Finished Product Photos</h6>
+                    
+                    <div id="galleryPhotosContainer" class="d-flex flex-column gap-3 mb-4">
+                        @if(Model.Images != null && Model.Images.Any(i => i.IsFinishedProduct && !i.IsDeleted))
+                        {
+                            @foreach(var img in Model.Images.Where(i => i.IsFinishedProduct && !i.IsDeleted).OrderBy(i => i.DisplayOrder))
+                            {
+                                <div class="d-flex align-items-center gap-3 p-2 border rounded bg-light gallery-photo-item" data-id="@img.Id">
+                                    <i class="fas fa-grip-vertical text-muted cursor-move" style="cursor: grab;"></i>
+                                    <img src="@img.ImageUrl" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;" />
+                                    <div class="flex-grow-1">
+                                        @if(img.IsCoverImage) { <span class="badge bg-primary mb-1">Cover Image</span> }
+                                        <input type="text" class="form-control form-control-sm alt-text-input" placeholder="Alt text for SEO..." value="@img.AltText" data-id="@img.Id" style="font-size: .75rem; padding: .2rem .4rem;" />
+                                    </div>
+                                    <div class="d-flex flex-column gap-1">
+                                        @if(!img.IsCoverImage) {
+                                            <button class="btn btn-sm btn-outline-primary py-0 px-2 set-cover-btn" data-id="@img.Id" style="font-size: .75rem;" title="Set as Cover"><i class="fas fa-star"></i></button>
+                                        }
+                                        <button class="btn btn-sm btn-outline-danger py-0 px-2 delete-photo-btn" data-id="@img.Id" style="font-size: .75rem;" title="Remove"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-muted small">No photos available.</div>
+                        }
+                    </div>
+
+                    <form method="post" asp-area="Admin" asp-controller="CustomOrders" asp-action="UploadGalleryPhotos" asp-route-id="@Model.Id" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="input-group input-group-sm mb-2">
+                            <input type="file" name="images" multiple accept="image/*" class="form-control te-admin-ctrl" required />
+                            <button class="btn btn-primary" type="submit" style="background:#8b5cf6;border-color:#8b5cf6;"><i class="fas fa-upload"></i></button>
+                        </div>
+                        <small class="text-muted d-block" style="font-size: .75rem;">Upload more finished photos to the gallery.</small>
+                    </form>
+                </div>
+            </div>
+            
+            <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const el = document.getElementById('galleryPhotosContainer');
+                    if (el) {
+                        new Sortable(el, {
+                            handle: '.cursor-move',
+                            animation: 150,
+                            onEnd: function () {
+                                const ids = Array.from(el.querySelectorAll('.gallery-photo-item')).map(item => item.dataset.id);
+                                fetch('@Url.Action("ReorderGalleryPhotos", "CustomOrders", new { area = "Admin" })?id=@Model.Id', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(ids)
+                                }).then(r => r.json()).then(data => {
+                                    if(data.success) { console.log('Reordered'); }
+                                });
+                            }
+                        });
+
+                        el.addEventListener('click', function(e) {
+                            const delBtn = e.target.closest('.delete-photo-btn');
+                            if (delBtn) {
+                                if(!confirm('Are you sure you want to remove this photo?')) return;
+                                const imgId = delBtn.dataset.id;
+                                fetch('@Url.Action("DeleteGalleryPhoto", "CustomOrders", new { area = "Admin" })?imageId=' + imgId, {
+                                    method: 'POST',
+                                }).then(r => r.json()).then(data => {
+                                    if(data.success) location.reload();
+                                });
+                            }
+
+                            const coverBtn = e.target.closest('.set-cover-btn');
+                            if (coverBtn) {
+                                const imgId = coverBtn.dataset.id;
+                                fetch('@Url.Action("SetCoverImage", "CustomOrders", new { area = "Admin" })?id=@Model.Id&imageId=' + imgId, {
+                                    method: 'POST',
+                                }).then(r => r.json()).then(data => {
+                                    if(data.success) location.reload();
+                                });
+                            }
+                        });
+
+                        el.addEventListener('change', function(e) {
+                            if (e.target.classList.contains('alt-text-input')) {
+                                const imgId = e.target.dataset.id;
+                                const altText = e.target.value;
+                                fetch('@Url.Action("UpdateGalleryPhotoAltText", "CustomOrders", new { area = "Admin" })?imageId=' + imgId + '&altText=' + encodeURIComponent(altText), {
+                                    method: 'POST'
+                                }).then(r => r.json()).then(data => {
+                                    if(data.success && window.teToast) window.teToast('Alt text saved', 'success');
+                                });
+                            }
+                        });
+                    }
+                });
+            </script>
+        }
+
+    </div>
+</div>

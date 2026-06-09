@@ -1,0 +1,50 @@
+@model List<Threadelle.ViewModels.ProductCardViewModel>
+
+@if (Model.Count == 0)
+{
+    <div class="te-empty-state py-5">
+        <i class="far fa-heart te-empty-icon"></i>
+        <h3 style="font-size:1.25rem;">Your wishlist is empty</h3>
+        <p>Tap the heart on any piece you adore and it'll appear here.</p>
+        <a class="btn btn-primary" asp-controller="Collections" asp-action="Index" data-bs-dismiss="offcanvas">Explore Products</a>
+    </div>
+}
+else
+{
+    <div class="te-wishlist-list">
+        @foreach (var item in Model)
+        {
+            <div class="te-wishlist-item" data-product-id="@item.Id">
+                <a asp-controller="Collections" asp-action="Details" asp-route-slug="@item.Slug" class="te-wishlist-thumb" data-bs-dismiss="offcanvas">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="@item.Name" />
+                    }
+                    else
+                    {
+                        <span class="te-product-placeholder"><i class="fas fa-scissors"></i></span>
+                    }
+                </a>
+                <div class="te-wishlist-meta">
+                    <div class="te-wishlist-cat">@item.CategoryName</div>
+                    <a asp-controller="Collections" asp-action="Details" asp-route-slug="@item.Slug" class="te-wishlist-name" data-bs-dismiss="offcanvas">@item.Name</a>
+                    <div class="te-wishlist-price">@Threadelle.Helpers.CurrencyFormatter.Format(item.Price)</div>
+                    <div class="te-wishlist-actions">
+                        @if (item.InStock)
+                        {
+                            <button class="btn btn-primary btn-sm te-add-cart-btn" data-product-id="@item.Id">
+                                <i class="fas fa-bag-shopping" style="font-size:.65rem;"></i> Add to bag
+                            </button>
+                        }
+                        <button class="te-wishlist-remove te-wishlist-btn" data-product-id="@item.Id" aria-label="Remove">
+                            <i class="fas fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="text-center mt-3">
+        <a class="btn btn-outline-primary w-100" asp-controller="Wishlist" asp-action="Index" data-bs-dismiss="offcanvas">View full wishlist</a>
+    </div>
+}

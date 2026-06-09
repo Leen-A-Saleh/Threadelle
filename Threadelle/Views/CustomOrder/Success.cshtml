@@ -1,0 +1,35 @@
+@model CustomOrder
+@{
+    ViewData["Title"] = "Your Story Has Been Received";
+}
+
+<section class="te-section te-section-light d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 120px); padding: 4rem 1rem;">
+    <div class="container" style="max-width:600px;">
+        <div class="te-success-glass-card text-center te-observe">
+            <!-- Animated Success Mark -->
+            <div class="te-success-ring-animation mb-4">
+                <svg class="te-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="te-checkmark-circle" cx="26" cy="26" r="25" fill="none" />
+                    <path class="te-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                </svg>
+            </div>
+            
+            <span class="te-success-tag text-uppercase letter-spacing-lg mb-2 d-block">Request Received</span>
+            <h1 class="te-success-title mb-3">Your Story Has Been Received</h1>
+            <p class="te-success-text mb-4">
+                Leen will personally review your idea and get in touch to bring it to life.
+            </p>
+            
+            <div class="te-success-details-box mb-4">
+                <span class="te-details-label d-block text-uppercase mb-1">Your Unique Reference</span>
+                <strong class="te-details-number">@Model.CustomOrderNumber</strong>
+                <span class="te-details-title d-block mt-2">“@Model.Title”</span>
+            </div>
+            
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="/" class="btn te-btn-luxury"><i class="fas fa-home me-2"></i>Back to Home</a>
+                <a href="/Collections" class="btn te-btn-luxury-outline"><i class="fas fa-bag-shopping me-2"></i>Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</section>

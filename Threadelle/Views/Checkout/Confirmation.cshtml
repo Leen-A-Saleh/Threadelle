@@ -1,0 +1,63 @@
+@model Order
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<section class="te-section te-section-light">
+    <div class="container" style="max-width: 680px;">
+        <div class="te-success-card text-center" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid var(--te-border); border-radius: 20px; padding: 3rem 2rem; box-shadow: 0 15px 40px rgba(0,0,0,0.05);">
+            <div class="te-success-icon" style="background: linear-gradient(135deg, var(--te-blush), var(--te-dusty-rose)); color: #fff; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem; box-shadow: 0 8px 24px rgba(216, 167, 167, 0.4); animation: pulse 2s infinite;">
+                <i class="fas fa-check"></i>
+            </div>
+            
+            <span class="section-tag" style="letter-spacing: 0.15em; text-transform: uppercase; color: var(--te-dusty-rose); font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem;">Yay! It's Official</span>
+            <h1 class="section-title" style="font-family: 'Playfair Display', serif; font-size: 2.25rem; font-weight: 700; color: var(--te-text-primary); margin-bottom: 1.5rem;">Your order is confirmed!</h1>
+            
+            <p style="color: var(--te-text-secondary); line-height: 1.8; font-size: 1.05rem; margin-bottom: 2rem;">
+                Thank you for choosing ThreadElle. Your handmade piece will be prepared with love and care.
+            </p>
+
+            <div class="te-order-summary-box mb-4" style="background: #fff; border: 1px solid var(--te-border); border-radius: 12px; padding: 1.5rem; text-align: left;">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <span class="text-muted" style="font-size: 0.9rem;">Order Number</span>
+                    <strong style="color: var(--te-text-primary); font-size: 1rem; font-family: monospace;">@Model.OrderNumber</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <span class="text-muted" style="font-size: 0.9rem;">Total Amount</span>
+                    <strong style="color: var(--te-deep-rose); font-size: 1.1rem; font-weight: 700;">@Threadelle.Helpers.CurrencyFormatter.Format(Model.TotalPrice)</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <span class="text-muted" style="font-size: 0.9rem;">Payment Method</span>
+                    <strong style="color: var(--te-text-primary); font-size: 0.95rem;">@Model.PaymentMethod</strong>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.TransactionId))
+                {
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <span class="text-muted" style="font-size: 0.9rem;">Transaction ID</span>
+                        <strong style="color: var(--te-text-primary); font-size: 0.85rem; font-family: monospace;">@Model.TransactionId</strong>
+                    </div>
+                }
+                <div class="d-flex align-items-start mt-3 gap-2">
+                    <i class="fas fa-clock mt-1" style="color: var(--te-gold); font-size: 0.9rem;"></i>
+                    <p class="mb-0 text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+                        <strong>Estimated Processing Message:</strong><br />
+                        Each ThreadElle creation is slowly looped and finished by hand. Preparing and shipping your custom order will take approximately <strong>3 – 7 business days</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
+                <a asp-controller="Collections" asp-action="Index" class="btn btn-primary btn-lg" style="border-radius: 30px; padding: 0.75rem 2rem; font-weight: 500;"><i class="fas fa-bag-shopping me-2"></i>Continue Shopping</a>
+                <a asp-controller="Profile" asp-action="OrderDetails" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-lg" style="border-radius: 30px; padding: 0.75rem 2rem; font-weight: 500;"><i class="fas fa-truck me-2"></i>Track Order</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+@@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>

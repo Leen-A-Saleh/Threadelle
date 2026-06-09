@@ -1,0 +1,68 @@
+@using Threadelle.Models
+@{
+    ViewData["Title"] = "Coupon Analytics";
+    Layout = "_AdminLayout";
+    var stats = ViewBag.Stats as IEnumerable<dynamic>;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 text-gray-800 mb-0">Coupon Analytics</h2>
+        <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Coupons</a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Coupon Usage & Revenue Performance</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Coupon Code</th>
+                            <th>Type</th>
+                            <th>Usage Count</th>
+                            <th>Total Discount Granted</th>
+                            <th>Revenue Generated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (stats != null && stats.Any())
+                        {
+                            int rank = 1;
+                            foreach (var stat in stats)
+                            {
+                                <tr>
+                                    <td>#@rank</td>
+                                    <td><strong>@stat.Coupon.Code</strong></td>
+                                    <td>
+                                        @if (stat.Coupon.IsAutomaticPromotion)
+                                        {
+                                            <span class="badge bg-success">Automatic Promotion</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">Manual Code</span>
+                                        }
+                                    </td>
+                                    <td>@stat.UsageCount</td>
+                                    <td class="text-danger">-@Threadelle.Helpers.CurrencyFormatter.Format(stat.TotalDiscount)</td>
+                                    <td class="text-success">@Threadelle.Helpers.CurrencyFormatter.Format(stat.TotalRevenue)</td>
+                                </tr>
+                                rank++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No coupon data available yet.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

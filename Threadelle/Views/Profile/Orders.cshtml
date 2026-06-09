@@ -1,0 +1,67 @@
+@model List<Order>
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<section class="te-section te-section-light te-profile-page">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3"><partial name="_ProfileSidebar" /></div>
+            <div class="col-lg-9">
+                <div class="te-profile-header-card">
+                    <h1 class="te-profile-header-title">
+                        <span class="te-profile-header-card-icon"><i class="fas fa-box-open"></i></span>
+                        Order History
+                    </h1>
+                    <p class="te-profile-header-subtitle">Every treasure you've ordered, in one place.</p>
+                </div>
+
+                <div class="te-form-card p-0">
+                    @if (Model.Any())
+                    {
+                        <div class="te-luxury-table-wrapper border-0 rounded-0 shadow-none">
+                            <table class="te-luxury-table w-100 mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-5">Order Details</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th class="text-end pe-5">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var o in Model)
+                                    {
+                                        <tr style="cursor: pointer;" onclick="window.location.href='@Url.Action("OrderDetails", "Profile", new { id = o.Id })'">
+                                            <td class="ps-5">
+                                                <strong class="d-block text-dark">@o.OrderNumber</strong>
+                                                <small class="text-muted">@o.CreatedAt.ToLocalTime().ToString("dd MMM yyyy") · @o.OrderItems.Sum(i => i.Quantity) item@(o.OrderItems.Sum(i => i.Quantity) == 1 ? "" : "s")</small>
+                                            </td>
+                                            <td><span class="te-badge te-badge-@o.Status.Badge()">@o.Status.Friendly()</span></td>
+                                            <td><span class="te-badge te-badge-@o.PaymentStatus.Badge()">@o.PaymentStatus</span></td>
+                                            <td class="text-end text-dark pe-5">
+                                                <strong>@Threadelle.Helpers.CurrencyFormatter.Format(o.TotalPrice)</strong>
+                                                <div class="mt-1"><small style="color: var(--te-dusty-rose);"><i class="fas fa-arrow-right"></i> View</small></div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 d-flex flex-column justify-content-center align-items-center" style="min-height: 400px;">
+                            <div class="te-empty-icon mb-4" style="width: 80px; height: 80px; border-radius: 50%; background: var(--te-light-blush); color: var(--te-dusty-rose); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto;">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <h3 style="font-family: var(--font-heading); color: var(--te-text-dark);">No orders yet</h3>
+                            <p class="text-muted mb-4" style="max-width: 400px; margin: 0 auto;">When you order something handmade, it'll appear here so you can follow along its journey.</p>
+                            <a asp-controller="Collections" asp-action="Index" class="btn btn-primary rounded-pill px-5 py-2">Explore Collections</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

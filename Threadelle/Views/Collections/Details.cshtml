@@ -1,0 +1,371 @@
+@model ProductDetailsViewModel
+@{
+    var p = Model.Product;
+    var soldOptions = new[] { "Found Its Home ❤️", "Made for Someone Special ✨", "Gifted With Love 🎁", "This Piece Has Been Adopted 🤍", "No Longer Available" };
+    var soldText = string.IsNullOrEmpty(p.SoldOutLabel) ? soldOptions[new Random(p.Id).Next(soldOptions.Length)] : p.SoldOutLabel;
+    
+    ViewData["Title"] = p.Name;
+    var storyText = !string.IsNullOrWhiteSpace(p.ProductStory) 
+        ? p.ProductStory 
+        : (!string.IsNullOrWhiteSpace(p.StoryTelling) ? p.StoryTelling : $"{p.Name} in {p.Category?.Name}. Every Threadelle piece carries a story.");
+    ViewData["MetaDescription"] = storyText;
+}
+
+<div class="container te-product-detail">
+
+    <!-- Breadcrumb -->
+    <nav class="te-breadcrumb" aria-label="breadcrumb">
+        <a asp-controller="Home" asp-action="Index">Home</a><span>/</span>
+        <a asp-controller="Collections" asp-action="Index">Collections</a><span>/</span>
+        <a asp-controller="Collections" asp-action="Index" asp-route-categoryId="@p.CategoryId">@p.Category.Name</a><span>/</span>
+        <span class="current">@p.Name</span>
+    </nav>
+
+    <!-- ══ TWO-COLUMN LAYOUT ═══════════════════════════════════════════════ -->
+    <div class="row g-5 align-items-start">
+
+        <!-- ── LEFT: Gallery ──────────────────────────────────────────────── -->
+        <div class="col-lg-6">
+            <div class="te-gallery-sticky">
+                <div class="te-gallery-main" id="galleryMain">
+                    @if (Model.Gallery.Any())
+                    {
+                        var blurClass = "";
+                        if (!Model.InStock)
+                        {
+                            blurClass = p.IsOnePiece ? "" : "te-card__img--blur-full";
+                        }
+                        <img class="@blurClass" src="@Model.Gallery.First().ImageUrl" alt="@p.Name" id="galleryMainImg" />
+                    }
+                    else
+                    {
+                        <div class="te-product-placeholder" style="aspect-ratio:1;">
+                            <i class="fas fa-scissors"></i>
+                        </div>
+                    }
+
+                    <!-- Centered Zero-Stock Overlay Badge on Details Page Main Image -->
+                    @if (!Model.InStock)
+                    {
+                        if (p.IsOnePiece)
+                        {
+                            <div class="te-card__sold-overlay te-card__sold-overlay--romantic">
+                                <span class="te-card__sold-badge te-card__sold-badge--onepiece-luxury">Found Its Home ❤️</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="te-card__sold-overlay te-card__sold-overlay--beige">
+                                <span class="te-card__sold-badge te-card__sold-badge--onepiece">@soldText</span>
+                            </div>
+                        }
+                    }
+
+                    @if (p.IsOnePiece)
+                    {
+                        <span class="te-product-badge">ONE PIECE</span>
+                    }
+                    else if (p.IsFeatured)
+                    {
+                        <span class="te-product-badge">Featured</span>
+                    }
+                </div>
+
+                @if (Model.Gallery.Count > 1)
+                {
+                    <div class="te-gallery-thumbs mt-3">
+                        @for (int i = 0; i < Model.Gallery.Count; i++)
+                        {
+                            <button type="button"
+                                    class="te-gallery-thumb @(i == 0 ? "is-active" : "")"
+                                    data-src="@Model.Gallery[i].ImageUrl">
+                                <img src="@Model.Gallery[i].ImageUrl" alt="@p.Name view @(i + 1)" />
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── RIGHT: Product info ────────────────────────────────────────── -->
+        <div class="col-lg-6">
+            <div class="te-luxury-info-panel">
+
+            <div class="te-product-category mb-1">@p.Category.Name</div>
+            <h1 class="te-luxury-title mb-2">@p.Name</h1>
+
+            <!-- Price -->
+            <div class="mb-3">
+                @if (Model.HasDiscount)
+                {
+                    <div class="d-flex align-items-center gap-3 flex-wrap mb-1">
+                        <div class="te-detail-price te-detail-price--sale">@Threadelle.Helpers.CurrencyFormatter.Format(Model.Price)</div>
+                        <div class="te-detail-price-orig">@Threadelle.Helpers.CurrencyFormatter.Format(Model.OriginalPrice)</div>
+                        @if (!string.IsNullOrEmpty(Model.DiscountBadge))
+                        {
+                            <span class="te-detail-discount-badge">@Model.DiscountBadge</span>
+                        }
+                    </div>
+                    <div class="te-detail-save-text">You save @Threadelle.Helpers.CurrencyFormatter.Format(Model.DiscountAmount)</div>
+                }
+                else
+                {
+                    <div class="te-detail-price">@Threadelle.Helpers.CurrencyFormatter.Format(Model.Price)</div>
+                }
+            </div>
+
+            <!-- Stock Status Badge -->
+            @if (!Model.InStock)
+            {
+                <div class="mb-4">
+                    <span class="badge bg-rose-gold text-white px-3 py-2" style="border-radius: 30px; font-weight: 600; background-color: var(--te-blush); font-size:0.85rem;">@soldText</span>
+                </div>
+            }
+
+            <!-- Story Section (Poem/Quote Box) -->
+            <div class="te-detail-story-box mb-4">
+                <i class="fas fa-quote-left te-quote-icon"></i>
+                <p class="te-detail-story-content">@storyText</p>
+                <div class="te-story-divider"><span>♥</span></div>
+            </div>
+
+            <form id="addToCartForm" class="te-detail-buy">
+                <input type="hidden" id="detailColorId" name="colorId" value="" />
+
+                <!-- Colors swatches -->
+                @if (Model.Colors.Any())
+                {
+                    <div class="te-detail-block mb-3">
+                        <label class="form-label font-weight-500">
+                            Colour <span class="te-selected-color text-muted ms-1" id="selectedColorName"></span>
+                        </label>
+                        <div class="te-color-swatches">
+                            @foreach (var c in Model.Colors)
+                            {
+                                var isSoldOut = c.Quantity <= 0;
+                                <button type="button"
+                                        class="te-color-swatch @(isSoldOut ? "te-color-swatch--oos" : "")"
+                                        data-color-id="@c.Id"
+                                        data-color-name="@c.Name"
+                                        data-qty="@c.Quantity"
+                                        style="--swatch:@(c.HexCode ?? "#D8A7A7")"
+                                        title="@(isSoldOut ? "Sold Out" : c.Name)"
+                                        aria-label="@c.Name"
+                                        @(isSoldOut ? "disabled" : "")></button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Sizes removed -->                <!-- Quantity selectors -->
+                @if (!p.IsOnePiece)
+                {
+                    <div class="te-detail-block mb-4">
+                        <label class="form-label font-weight-500">Quantity</label>
+                        <div class="te-qty-stepper">
+                            <button type="button" class="te-qty-btn" data-step="-1" aria-label="Decrease">−</button>
+                            <input type="number" id="qtyInput" value="1" min="1"
+                                   max="@Math.Max(1, p.Quantity)" readonly />
+                            <button type="button" class="te-qty-btn" data-step="1" aria-label="Increase">+</button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @* One-piece: quantity is always 1, no selector needed *@
+                    <input type="hidden" id="qtyInput" value="1" />
+                }
+
+                <div class="d-flex gap-2 te-detail-actions mt-4">
+                    @if (Model.InStock)
+                    {
+                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1"
+                                id="detailAddBtn" data-product-id="@p.Id">
+                            <i class="fas fa-bag-shopping"></i> Add to Bag
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-primary btn-lg flex-grow-1" disabled style="opacity: 0.65; cursor: not-allowed;">
+                            <span>@soldText</span>
+                        </button>
+                    }
+                    <button type="button"
+                            class="btn btn-outline-primary btn-lg te-wishlist-btn te-detail-wishlist @(Model.IsWishlisted ? "is-active" : "")"
+                            data-product-id="@p.Id" aria-label="Add to wishlist">
+                        <i class="@(Model.IsWishlisted ? "fas" : "far") fa-heart"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Trust strip -->
+            <div class="te-detail-trust mt-4">
+                <div><i class="fas fa-hand-holding-heart"></i> Handmade to order</div>
+                <div><i class="fas fa-gift"></i> Gift-ready wrapping</div>
+                <div><i class="fas fa-truck"></i> Free shipping over 50 JOD</div>
+            </div>
+
+            @if (Model.Materials.Any())
+            {
+                <div class="te-detail-block mt-4">
+                    <label class="form-label font-weight-500">Lovingly made with</label>
+                    <div class="te-material-chips">
+                        @foreach (var m in Model.Materials)
+                        {
+                            <span class="te-chip">@m.Name</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <p class="te-custom-hint mt-4">
+                <i class="fas fa-wand-magic-sparkles"></i> Want it in different colours or sizes?
+                <a asp-controller="CustomOrder" asp-action="Create">Request a custom version</a>.
+            </p>
+            </div><!-- /luxury panel -->
+
+        </div><!-- /col info -->
+
+    </div><!-- /row two-column -->
+
+    <!-- ══ BELOW THE FOLD ══════════════════════════════════════════════════ -->
+
+
+    @if (Model.RelatedProducts.Any())
+    {
+        <section class="te-detail-section">
+            <div class="text-center mb-4">
+                <span class="section-tag">You May Also Love</span>
+                <h2 class="section-title" style="font-size:1.6rem;">More from @p.Category.Name</h2>
+            </div>
+            <div class="row g-4">
+                @foreach (var rel in Model.RelatedProducts)
+                {
+                    <div class="col-lg-3 col-md-6">
+                        <partial name="_ProductCard" model="rel" />
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+</div><!-- /container -->
+
+@section Scripts {
+    <script>
+        (function () {
+            // Gallery thumbnails (smooth transition)
+            document.querySelectorAll('.te-gallery-thumb').forEach(function (t) {
+                t.addEventListener('click', function () {
+                    var img = document.getElementById('galleryMainImg');
+                    if (img) {
+                        img.style.opacity = '0';
+                        setTimeout(() => {
+                            img.src = this.dataset.src;
+                            img.style.opacity = '1';
+                        }, 150);
+                    }
+                    document.querySelectorAll('.te-gallery-thumb').forEach(x => x.classList.remove('is-active'));
+                    this.classList.add('is-active');
+                });
+            });
+
+            // Interactive Zoom Lens on Hover
+            var galleryMain = document.getElementById('galleryMain');
+            var mainImg = document.getElementById('galleryMainImg');
+            if (galleryMain && mainImg && !mainImg.classList.contains('te-card__img--blur-full') && !mainImg.classList.contains('te-card__img--blur-slight')) {
+                galleryMain.addEventListener('mouseenter', function() {
+                    mainImg.style.transform = 'scale(1.8)';
+                });
+                
+                galleryMain.addEventListener('mousemove', function(e) {
+                    var rect = this.getBoundingClientRect();
+                    var x = ((e.clientX - rect.left) / rect.width) * 100;
+                    var y = ((e.clientY - rect.top) / rect.height) * 100;
+                    mainImg.style.transformOrigin = x + '% ' + y + '%';
+                });
+
+                galleryMain.addEventListener('mouseleave', function() {
+                    mainImg.style.transform = 'scale(1)';
+                    mainImg.style.transformOrigin = 'center center';
+                });
+            }
+
+            // Size buttons click selection
+            document.querySelectorAll('.te-size-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.te-size-btn').forEach(x => x.classList.remove('active'));
+                    this.classList.add('active');
+                    var sz = this.dataset.size;
+                    document.getElementById('selectedSizeName').textContent = '— ' + sz;
+                    var sizeHidden = document.getElementById('detailSize');
+                    if (sizeHidden) sizeHidden.value = sz;
+                });
+            });
+
+            // Colour swatches
+            var swatches = document.querySelectorAll('.te-color-swatch:not([disabled])');
+            if (swatches.length > 0) {
+                function selectSwatch(el) {
+                    swatches.forEach(s => s.classList.remove('is-active'));
+                    el.classList.add('is-active');
+                    document.getElementById('detailColorId').value = el.dataset.colorId;
+                    var nm = document.getElementById('selectedColorName');
+                    if (nm) nm.textContent = '— ' + el.dataset.colorName;
+                    
+                    var qty = document.getElementById('qtyInput');
+                    if (qty && el.dataset.qty) {
+                        qty.max = el.dataset.qty;
+                        if (parseInt(qty.value, 10) > parseInt(el.dataset.qty, 10)) {
+                            qty.value = el.dataset.qty;
+                        }
+                    }
+                }
+                
+                if (swatches.length === 1) {
+                    selectSwatch(swatches[0]);
+                }
+                
+                swatches.forEach(s => s.addEventListener('click', () => selectSwatch(s)));
+            }
+
+            // Quantity stepper
+            var qty = document.getElementById('qtyInput');
+            if (qty) {
+                document.querySelectorAll('.te-qty-btn').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        var step = parseInt(this.dataset.step, 10);
+                        var min  = parseInt(qty.min, 10) || 1;
+                        var max  = parseInt(qty.max, 10) || 99;
+                        qty.value = Math.min(max, Math.max(min, (parseInt(qty.value, 10) || 1) + step));
+                    });
+                });
+            }
+
+            // Add to bag
+            var form = document.getElementById('addToCartForm');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var btn = document.getElementById('detailAddBtn');
+                    if (!btn) return;
+                    
+                    var colorId = document.getElementById('detailColorId').value || null;
+                    var colorSwatches = document.querySelectorAll('.te-color-swatch');
+                    
+                    if (colorSwatches.length > 0 && !colorId) {
+                        if (typeof window.teToast === 'function') {
+                            window.teToast('Please select a colour before adding to bag.', 'warning');
+                        } else {
+                            alert('Please select a colour before adding to bag.');
+                        }
+                        return;
+                    }
+                    
+                    var quantity = parseInt(document.getElementById('qtyInput').value, 10) || 1;
+                    window.teAddToCart(btn.dataset.productId, colorId, quantity, btn);
+                });
+            }
+        })();
+    </script>
+}

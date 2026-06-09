@@ -1,0 +1,116 @@
+@model List<Threadelle.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Customers";
+    var search = ViewBag.Search as string;
+    int page = ViewBag.Page;
+    int pageSize = ViewBag.PageSize;
+    int totalCount = ViewBag.TotalCount;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 style="font-family:var(--font-heading);color:var(--te-deep-rose);margin:0;">Customers</h2>
+        <p style="color:var(--te-text-muted);margin:0;">@totalCount registered customers</p>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="te-admin-card mb-4">
+    <div class="te-admin-card-body py-3">
+        <form method="get" class="d-flex gap-2">
+            <div class="te-filter-searchbox flex-grow-1" style="border-radius:var(--r-sm);">
+                <i class="fas fa-search"></i>
+                <input type="text" name="search" value="@search" placeholder="Search by name or email…" />
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a href="?page=1" class="btn btn-outline-primary">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="te-empty-state">
+        <i class="fas fa-users te-empty-icon"></i>
+        <h3>No customers found</h3>
+        <p>@(string.IsNullOrEmpty(search) ? "No customers registered yet." : $"No customers matched \"{search}\"")</p>
+    </div>
+}
+else
+{
+    <div class="te-admin-card">
+        <div class="te-admin-card-body p-0">
+            <div class="table-responsive">
+                <table class="table te-admin-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Gender</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (!string.IsNullOrEmpty(u.ProfileImageUrl))
+                                        {
+                                            <img src="@u.ProfileImageUrl" class="te-account-avatar" style="width:34px;height:34px;border-radius:50%;object-fit:cover;" alt="" />
+                                        }
+                                        else
+                                        {
+                                            <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--te-dusty-rose),var(--te-rose-mauve));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;">
+                                                @(u.FullName?.FirstOrDefault().ToString().ToUpper() ?? "?")
+                                            </span>
+                                        }
+                                        <strong style="color:var(--te-deep-rose);">@u.FullName</strong>
+                                    </div>
+                                </td>
+                                <td style="color:var(--te-text-secondary);">@u.Email</td>
+                                <td style="color:var(--te-text-secondary);">@(u.PhoneNumber ?? "—")</td>
+                                <td style="color:var(--te-text-secondary);">@u.Gender</td>
+                                <td>
+                                    @if (u.IsActive)
+                                    {
+                                        <span class="te-badge" style="background:rgba(100,160,100,.12);color:#3d6b3d;">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="te-badge te-badge-cancelled">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-area="Admin" asp-controller="Users" asp-action="Details" asp-route-id="@u.Id"
+                                       class="btn btn-outline-primary btn-sm">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="pagination">
+                @for (int p = 1; p <= totalPages; p++)
+                {
+                    <li class="page-item @(p == page ? "active" : "")">
+                        <a class="page-link" href="?search=@search&page=@p">@p</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

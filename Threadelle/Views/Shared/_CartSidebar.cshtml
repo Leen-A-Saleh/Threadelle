@@ -1,0 +1,81 @@
+@model Threadelle.ViewModels.CartViewModel
+
+@if (Model.IsEmpty)
+{
+    <div class="te-empty-state py-5 px-3">
+        <i class="fas fa-bag-shopping te-empty-icon"></i>
+        <h3 style="font-size:1.2rem;">Your bag is empty</h3>
+        <p>Fill it with something handmade and lovely — every piece is waiting to find its person.</p>
+        <a class="btn btn-primary" asp-controller="Collections" asp-action="Index">Continue Shopping</a>
+    </div>
+}
+else
+{
+    <div class="te-cart-drawer-inner">
+        <!-- Free shipping progress -->
+        <div class="te-ship-progress mb-3" id="drawerShipProgress" data-threshold="@Model.ShippingThreshold" data-subtotal="@Model.SubTotal">
+            <div class="te-ship-progress-text"></div>
+            <div class="te-ship-progress-bar"><span></span></div>
+        </div>
+
+        <div class="te-cart-lines" id="drawerCartLines">
+            @foreach (var line in Model.Lines)
+            {
+                <div class="te-cart-line" data-item-id="@line.CartItemId" data-unit="@line.UnitPrice">
+                    <a asp-controller="Collections" asp-action="Details" asp-route-slug="@line.Slug" class="te-cart-thumb">
+                        @if (!string.IsNullOrEmpty(line.ImageUrl))
+                        {
+                            <img src="@line.ImageUrl" alt="@line.Name" />
+                        }
+                        else
+                        {
+                            <span class="te-product-placeholder"><i class="fas fa-scissors"></i></span>
+                        }
+                    </a>
+                    <div class="te-cart-info">
+                        <a asp-controller="Collections" asp-action="Details" asp-route-slug="@line.Slug" class="te-cart-name">@line.Name</a>
+                        @if (!string.IsNullOrEmpty(line.ColorName))
+                        {
+                            <div class="te-cart-variant">
+                                <span class="te-swatch-dot" style="background:@(line.ColorHex ?? "#D8A7A7")"></span> @line.ColorName
+                            </div>
+                        }
+                        <div class="d-flex align-items-center justify-content-between mt-2 gap-2">
+                            <div class="te-qty-stepper te-qty-stepper-sm">
+                                <button type="button" class="te-qty-btn te-cart-dec" aria-label="Decrease">−</button>
+                                <input type="number" class="te-cart-qty-input" value="@line.Quantity" min="1" max="@line.MaxQuantity" readonly />
+                                <button type="button" class="te-qty-btn te-cart-inc" aria-label="Increase">+</button>
+                            </div>
+                            <span class="te-cart-linetotal te-line-total">@Threadelle.Helpers.CurrencyFormatter.Format(line.LineTotal)</span>
+                            <button class="te-cart-remove" aria-label="Remove"><i class="fas fa-xmark"></i></button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="te-drawer-summary mt-3 pt-3 border-top">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span style="color:var(--te-text-secondary);font-size:.9rem;">Subtotal</span>
+                <span style="font-weight:700;color:var(--te-deep-rose);"><span id="drawerSubtotal">@Threadelle.Helpers.CurrencyFormatter.Format(Model.SubTotal)</span></span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span style="color:var(--te-text-secondary);font-size:.85rem;">Shipping</span>
+                @if (Model.Shipping <= 0)
+                {
+                    <span style="color:var(--te-dusty-rose);font-weight:600;font-size:.85rem;">Free</span>
+                }
+                else
+                {
+                    <span style="font-size:.85rem;">@Threadelle.Helpers.CurrencyFormatter.Format(Model.Shipping)</span>
+                }
+            </div>
+            <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary w-100 mb-2">
+                <i class="fas fa-lock"></i> Checkout — @Threadelle.Helpers.CurrencyFormatter.Format(Model.Total)
+            </a>
+            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-primary w-100">
+                View Full Bag
+            </a>
+        </div>
+    </div>
+}

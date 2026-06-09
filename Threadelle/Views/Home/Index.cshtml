@@ -1,0 +1,669 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Handmade with Love, Gifted with Meaning";
+    var avatarGradients = new[]
+    {
+        "background:linear-gradient(135deg,var(--te-blush),var(--te-dusty-rose))",
+        "background:linear-gradient(135deg,var(--te-gold),#B8915A)",
+        "background:linear-gradient(135deg,var(--te-rose-mauve),var(--te-deep-rose))"
+    };
+}
+
+<div class="te-homepage-content">
+<!-- ═══════════ 1. HERO SECTION ═══════════ -->
+<section class="te-hero-parallax-video bg-dark position-relative overflow-hidden w-100" style="height: 80vh; min-height: 500px;" id="teHeroSliderSection">
+    
+    <!-- Video Container -->
+    <div class="te-hero-slider position-absolute start-0 top-0 w-100 h-100" id="teHeroSlider">
+        <video class="te-hero-video-bg w-100 h-100 position-absolute start-0 top-0 is-active" style="object-fit: cover;" muted playsinline preload="auto">
+            <source src="@Url.Content("~/video/headerVideo.mp4")" type="video/mp4">
+        </video>
+        <video class="te-hero-video-bg w-100 h-100 position-absolute start-0 top-0" style="object-fit: cover;" muted playsinline preload="none">
+            <source src="@Url.Content("~/video/headerVideo1.mp4")" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Static Overlay -->
+    <div class="te-hero-video-overlay position-absolute start-0 top-0 w-100 h-100" style="background: rgba(0,0,0,0.18); z-index: 2; pointer-events: none;"></div>
+    
+    <!-- Controls Container -->
+    <div class="te-hero-controls position-absolute w-100 h-100 start-0 top-0 d-flex flex-column justify-content-between" style="z-index: 3; pointer-events: none;">
+        <div class="flex-grow-1 position-relative d-flex align-items-center w-100">
+            <button class="te-hero-nav-btn te-hero-prev" aria-label="Previous Video" style="pointer-events: auto;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="te-hero-nav-btn te-hero-next" aria-label="Next Video" style="pointer-events: auto;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <div class="te-hero-pagination w-100 pb-4 d-flex justify-content-center gap-3" style="pointer-events: auto;">
+            <button class="te-hero-dot is-active" aria-label="Video 1" data-index="0"><div class="te-dot-progress"></div></button>
+            <button class="te-hero-dot" aria-label="Video 2" data-index="1"><div class="te-dot-progress"></div></button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════ 2. EMOTIONAL VALUE SECTION ═══════════ -->
+<section class="te-section te-section-light pt-5">
+    <div class="container">
+        <div class="text-center mb-5 te-observe">
+            <span class="section-tag">Why Handmade</span>
+            <h2 class="section-title">The Quiet Magic of a Handmade Gift</h2>
+            <div class="te-divider justify-content-center" style="max-width:180px;margin:.75rem auto;"><span>♥</span></div>
+        </div>
+        <div class="row g-4">
+            @{
+                var values = new[]
+                {
+                    ("fa-clock","Made with Time","Every piece takes hours — sometimes days. That time is the gift: a little piece of a life, given to another."),
+                    ("fa-fingerprint","One of a Kind","No two pieces are ever truly identical. Like the people we make them for, each one is gloriously unrepeatable."),
+                    ("fa-heart","Made with Feeling","A handmade gift says what words sometimes can't: I thought of you, I chose this, I made room for you in my hands."),
+                    ("fa-leaf","Made to Last","Slow-made and well-made. These are keepsakes — the kind that get tucked away, kept, and remembered for years.")
+                };
+            }
+            @for (int i = 0; i < values.Length; i++)
+            {
+                <div class="col-lg-3 col-md-6 te-observe" style="transition-delay:@(i*0.1)s">
+                    <div class="te-feature-card h-100">
+                        <div class="te-feature-icon"><i class="fas @values[i].Item1"></i></div>
+                        <h5>@values[i].Item2</h5>
+                        <p>@values[i].Item3</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════ 3. LATEST ONE PIECES ═══════════ -->
+@if (Model.OnePieceProducts.Any())
+{
+    <section class="te-section te-section-light pt-0">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="section-tag">One of a Kind</span>
+                <h2 class="section-title">Latest One Pieces</h2>
+                <div class="te-divider justify-content-center" style="max-width:180px;margin:.75rem auto;"><span>♥</span></div>
+                <p class="mx-auto text-muted" style="max-width:600px; font-style: italic;">
+                    Handcrafted exclusively for those who appreciate timeless elegance.
+                </p>
+            </div>
+
+            <!-- Product Slider Layout -->
+            <div class="te-slider-outer te-observe">
+                <button class="te-slider-arrow te-slider-arrow--left" aria-label="Previous slide">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="te-slider-viewport">
+                    <div class="te-slider-track" id="onePieceSliderTrack">
+                        @foreach (var p in Model.OnePieceProducts)
+                        {
+                            <div class="te-slider-slide">
+                                <partial name="_ProductCard" model="p" />
+                            </div>
+                        }
+                    </div>
+                </div>
+                <button class="te-slider-arrow te-slider-arrow--right" aria-label="Next slide">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Pagination Dots -->
+            <div class="te-slider-dots te-observe" id="onePieceSliderDots" style="transition-delay: 0.08s;"></div>
+
+            <!-- View All CTA -->
+            <div class="text-center mt-5 te-observe" style="transition-delay: 0.15s;">
+                <a href="/Collection?category=one-piece" class="te-cta-view-all">
+                    Explore All One Pieces <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ═══════════ 3.5 MAIN CATEGORIES SHOWCASE ═══════════ -->
+@if (Model.Collections.Any(c => c.ProductCount > 0))
+{
+    <section class="te-section te-section-light pt-0 pb-5">
+        <div class="container pt-5">
+            <div class="text-center mb-5 te-observe">
+                <span class="section-tag">Explore</span>
+                <h2 class="section-title">Our Collections</h2>
+                <div class="te-divider justify-content-center" style="max-width:180px;margin:.75rem auto;"><span>♥</span></div>
+                <p class="mx-auto text-muted" style="max-width:600px; font-style: italic;">
+                    Discover pieces lovingly handcrafted for your special moments.
+                </p>
+            </div>
+
+            <div class="row g-4 justify-content-center te-observe" style="transition-delay: 0.1s;">
+                @foreach (var c in Model.Collections.Where(c => c.ProductCount > 0))
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="te-card h-100" style="cursor: pointer;" onclick="location.href='@Url.Action("Index", "Collections", new { category = c.Slug })'">
+                            <div class="te-card__media h-100 position-relative">
+                                <a class="te-card__img-link d-block h-100 w-100" asp-controller="Collections" asp-action="Index" asp-route-category="@c.Slug">
+                                    @if (!string.IsNullOrEmpty(c.ImageUrl))
+                                    {
+                                        <img class="te-card__img" src="@c.ImageUrl" alt="@c.Name" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <div class="te-card__placeholder h-100 w-100 d-flex align-items-center justify-content-center" style="background:var(--te-soft-beige); color:var(--te-blush);">
+                                            <i class="fas fa-gift fa-3x"></i>
+                                        </div>
+                                    }
+                                    
+                                    <!-- Soft semi-transparent dark overlay -->
+                                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.15); z-index: 1; transition: background 0.4s ease;"></div>
+                                    
+                                    <!-- Top Left Title Badge -->
+                                    <div class="position-absolute top-0 start-0" style="z-index: 2; margin: 1.25rem;">
+                                        <span class="d-inline-block px-3 py-2" style="background: rgba(216, 167, 167, 0.9); color: #fff; font-weight: 500; font-size: 1.25rem; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-family: var(--font-heading); border-radius: 10px; backdrop-filter: blur(4px);">
+                                            @c.Name
+                                        </span>
+                                    </div>
+
+                                    <!-- Bottom Left Product Count -->
+                                    <div class="position-absolute bottom-0 start-0" style="z-index: 2; margin: 1.25rem;">
+                                        <span class="d-inline-flex align-items-center px-3 py-1" style="background: rgba(255, 255, 255, 0.85); color: var(--te-dusty-rose); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-radius: 20px; backdrop-filter: blur(4px); box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                                            <i class="fas fa-cube me-2" style="font-size: 0.75rem; opacity: 0.8;"></i> @(c.ProductCount) @(c.ProductCount == 1 ? "Piece" : "Pieces")
+                                        </span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- View All CTA -->
+            <div class="text-center mt-5 te-observe" style="transition-delay: 0.15s;">
+                <a asp-controller="Collections" asp-action="Index" class="te-cta-view-all">
+                    Explore All Collections <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+}
+<!-- ═══════════ 4. BRAND STORY (Luxury Standalone) ═══════════ -->
+<section class="te-story-featured-section position-relative overflow-hidden w-100">
+    <!-- Luxury Divider Top -->
+    <div class="te-luxury-divider te-luxury-divider--top">
+        <span class="te-luxury-divider-line"></span>
+        <span class="te-luxury-divider-icon">♥</span>
+        <span class="te-luxury-divider-line"></span>
+    </div>
+
+    <!-- Floating Elements -->
+    <div class="te-floating-decor te-floating-decor--1"><i class="fas fa-heart"></i></div>
+    <div class="te-floating-decor te-floating-decor--2"><i class="fas fa-scissors"></i></div>
+    <div class="te-floating-decor te-floating-decor--3"><i class="fas fa-leaf"></i></div>
+    <div class="te-floating-decor te-floating-decor--4"><i class="fas fa-fingerprint"></i></div>
+
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center g-5">
+            <!-- Animated Image Column -->
+            <div class="col-lg-5 te-observe te-reveal-left">
+                <div class="te-story-img-container">
+                    <div class="te-story-img-frame">
+                        <img src="~/img/about-leen.svg" alt="Leen, founder of ThreadElle" />
+                    </div>
+                    <div class="te-story-badge-glass">
+                        <div class="te-story-badge-script">Handmade</div>
+                        <div class="te-story-badge-tag">with love, by Leen</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Animated Text Column -->
+            <div class="col-lg-7 te-observe te-reveal-right">
+                <div class="te-story-glass-card">
+                    <span class="section-tag">Our Story</span>
+                    <h2 class="section-title mb-4">A Little Love,<br>Looped Into Everything</h2>
+                    <p class="te-story-desc mb-3">
+                        ThreadElle began with a hook, a basket of yarn, and a belief that the most meaningful gifts
+                        are the ones made by hand. Every order is created one stitch at a time — never mass-produced,
+                        never rushed, always personal.
+                    </p>
+                    <p class="te-story-desc mb-4">
+                        From crochet keepsakes to delicate beadwork and fully custom creations, each piece carries
+                        the warmth of the hands that made it — and the heart of the person giving it.
+                    </p>
+                    <a asp-controller="Home" asp-action="About" class="btn btn-primary te-btn-premium">
+                        Discover Our Story <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Luxury Divider Bottom -->
+    <div class="te-luxury-divider te-luxury-divider--bottom">
+        <span class="te-luxury-divider-line"></span>
+        <span class="te-luxury-divider-icon">♥</span>
+        <span class="te-luxury-divider-line"></span>
+    </div>
+</section>
+
+<!-- ═══════════ TESTIMONIALS ═══════════ -->
+@{
+    var testimonials = Model.Testimonials?.Select((t, i) => (t, i)).ToList() ?? new();
+}
+<section class="te-section te-section-beige te-testimonials-section" id="testimonialsSection">
+    <div class="container">
+        <div class="text-center mb-5 te-observe">
+            <span class="section-tag">Love Notes</span>
+            <h2 class="section-title">What Our Customers Say</h2>
+            <div class="te-divider justify-content-center" style="max-width:180px;margin:.75rem auto;"><span>♥</span></div>
+            <p class="te-story-desc mx-auto mt-3" style="max-width: 600px;">
+                Real words from real women who trusted us with their hearts
+            </p>
+        </div>
+    </div>
+
+    @if (testimonials.Any())
+    {
+        <!-- Swiper slider — full-bleed so side cards peek in -->
+        <div class="te-testimonial-swiper-wrap" id="testimonialSwiperContainer">
+            <div class="swiper te-testimonial-swiper">
+                <div class="swiper-wrapper" id="testimonialSwiperWrapper">
+                    @foreach (var (t, i) in testimonials)
+                    {
+                        <div class="swiper-slide">
+                            <div class="te-testimonial-card te-tcard-slide te-dashboard-card">
+                                <!-- Big opening quote -->
+                                <div class="te-tcard-quote">❝</div>
+                                <!-- Stars -->
+                                <div class="te-stars mb-3">@(new string('★', t.Rating))@(new string('☆', 5 - t.Rating))</div>
+                                <!-- Message -->
+                                <p class="te-testimonial-text">"@t.Message"</p>
+                                <!-- Author -->
+                                <div class="te-tcard-author mt-4">
+                                    @if (!string.IsNullOrEmpty(t.ImageUrl))
+                                    {
+                                        <img src="@t.ImageUrl" class="te-avatar shadow-sm" style="object-fit: cover; border: 2px solid var(--te-blush);" alt="@t.User?.FullName" />
+                                    }
+                                    else
+                                    {
+                                        <div class="te-avatar shadow-sm" style="@avatarGradients[i % avatarGradients.Length]">
+                                            @(string.IsNullOrEmpty(t.User?.FullName) ? "♥" : t.User.FullName.Substring(0, 1).ToUpper())
+                                        </div>
+                                    }
+                                    <div class="ms-3 text-start">
+                                        <div class="te-tcard-name">@(t.User?.FullName ?? "A happy customer")</div>
+                                        <div class="te-tcard-label"><i class="fas fa-check-circle me-1"></i>Verified Buyer</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination dots -->
+                <div class="swiper-pagination te-tswiper-dots"></div>
+            </div>
+
+            <!-- Navigation arrows outside swiper so they don't clip -->
+            <button class="te-tswiper-prev" aria-label="Previous">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="te-tswiper-next" aria-label="Next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="container text-center mb-5" id="testimonialEmptyState">
+            <div class="te-dashboard-card mx-auto py-5" style="max-width: 800px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <i class="fas fa-gem mb-3" style="font-size: 3rem; color: var(--te-light-blush);"></i>
+                <h3 class="section-title mb-2">Be the First to Share Your Experience</h3>
+                <p class="te-story-desc mx-auto" style="max-width: 500px;">
+                    We pour our hearts into every piece. If ThreadElle has brought a little magic to your life, we would be honored to hear your story.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Hidden Swiper wrapper for dynamic insertion -->
+        <div class="te-testimonial-swiper-wrap d-none" id="testimonialSwiperContainer">
+            <div class="swiper te-testimonial-swiper">
+                <div class="swiper-wrapper" id="testimonialSwiperWrapper">
+                </div>
+                <!-- Pagination dots -->
+                <div class="swiper-pagination te-tswiper-dots"></div>
+            </div>
+            <button class="te-tswiper-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+            <button class="te-tswiper-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    }
+
+    <div class="container">
+        <div class="text-center mt-5">
+            <button type="button" class="te-btn-luxury-outline" id="openTestimonialModalBtn">
+                <i class="fas fa-pen-nib"></i> Share Your Experience
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════ 10. EMOTIONAL CTA ═══════════ -->
+<section class="te-cta-section" style="background-image: linear-gradient(to right, rgba(139,115,85,0.7) 0%, rgba(183,110,121,0.65) 100%), url('/img/hero-bg.png'); background-attachment: fixed; background-size: cover; background-position: center; padding: 7rem 0;">
+    <div class="container text-center" style="position:relative;z-index:1;">
+        <div class="te-observe">
+            <span class="section-tag" style="color:rgba(255,249,247,.75); text-transform: uppercase;">A Gift She'll Never Forget</span>
+            <h2 style="color:#fff;font-family: 'Playfair Display', serif; font-size:clamp(2.5rem,5vw,4.5rem); font-style: italic; margin-bottom:.5rem;">
+                Start Your ThreadElle Story
+            </h2>
+            <p style="color:rgba(255,249,247,.9);max-width:540px;margin:1rem auto 2.5rem;font-size:1.15rem; line-height: 1.7;">
+                Because the best gifts aren't bought — they are looped, knotted, and woven slowly by hand to carry a lifetime of meaning.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a asp-controller="Collections" asp-action="Index" class="btn-cta-solid"><i class="fas fa-bag-shopping"></i> Shop Collections</a>
+                <a asp-controller="CustomOrder" asp-action="Create" class="btn-cta"><i class="fas fa-palette"></i> Custom Order</a>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+
+<partial name="_TestimonialModal" />
+
+@section Scripts {
+    <!-- Swiper — testimonial slider only -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+    (function() {
+        // Expose function to initialize or re-initialize swiper
+        window.teInitTestimonialSwiper = function() {
+            var el = document.querySelector('.te-testimonial-swiper');
+            if (!el) return null;
+            var total = el.querySelectorAll('.swiper-slide').length;
+            if (total === 0) return null; // Wait for items
+            
+            // Destroy existing if re-initializing
+            if (el.swiper) {
+                el.swiper.destroy(true, true);
+            }
+
+            return new Swiper('.te-testimonial-swiper', {
+                slidesPerView: 1.15,
+                spaceBetween: 20,
+                centeredSlides: true,
+                loop: total >= 3,
+                autoplay: { delay: 5000, disableOnInteraction: false, pauseOnMouseEnter: true },
+                speed: 700,
+                grabCursor: true,
+                pagination: { el: '.te-tswiper-dots', clickable: true, dynamicBullets: true },
+                navigation: { prevEl: '.te-tswiper-prev', nextEl: '.te-tswiper-next' },
+                breakpoints: {
+                    600:  { slidesPerView: 1.6, spaceBetween: 24 },
+                    900:  { slidesPerView: 2.2, spaceBetween: 28 },
+                    1200: { slidesPerView: 3,   spaceBetween: 32, centeredSlides: false }
+                }
+            });
+        };
+        
+        // Initialize on load
+        window.teInitTestimonialSwiper();
+    })();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            /* ═══════════ HERO VIDEO SLIDER ═══════════ */
+            const heroSlider = document.getElementById('teHeroSliderSection');
+            if (heroSlider) {
+                const videos = heroSlider.querySelectorAll('.te-hero-video-bg');
+                const dots = heroSlider.querySelectorAll('.te-hero-dot');
+                const prevBtnHero = heroSlider.querySelector('.te-hero-prev');
+                const nextBtnHero = heroSlider.querySelector('.te-hero-next');
+                
+                let currentIdx = 0;
+                let isPaused = false;
+                let inactivityTimer = null;
+                
+                if (videos.length > 0) {
+                    videos[currentIdx].play().catch(e => console.log('Autoplay blocked', e));
+                }
+
+                function getNextIdx(idx) { return (idx + 1) % videos.length; }
+                function getPrevIdx(idx) { return (idx - 1 + videos.length) % videos.length; }
+
+                function switchVideo(newIdx) {
+                    if (newIdx === currentIdx) return;
+                    
+                    const outVid = videos[currentIdx];
+                    const inVid = videos[newIdx];
+                    
+                    inVid.load();
+                    inVid.play().catch(e => console.log('Autoplay blocked', e));
+                    inVid.classList.add('is-active');
+                    
+                    outVid.classList.remove('is-active');
+                    setTimeout(() => {
+                        if (!outVid.classList.contains('is-active')) {
+                            outVid.pause();
+                            outVid.currentTime = 0;
+                        }
+                    }, 1200); 
+                    
+                    dots[currentIdx].classList.remove('is-active');
+                    dots[currentIdx].querySelector('.te-dot-progress').style.width = '0%';
+                    dots[newIdx].classList.add('is-active');
+                    
+                    currentIdx = newIdx;
+                    videos[getNextIdx(currentIdx)].load();
+                }
+
+                function nextVideo() { switchVideo(getNextIdx(currentIdx)); }
+                function prevVideo() { switchVideo(getPrevIdx(currentIdx)); }
+
+                function resetInactivity() {
+                    isPaused = true;
+                    videos[currentIdx].pause();
+                    clearTimeout(inactivityTimer);
+                    inactivityTimer = setTimeout(() => {
+                        isPaused = false;
+                        videos[currentIdx].play().catch(() => {});
+                    }, 4000);
+                }
+
+                videos.forEach((vid, idx) => {
+                    vid.addEventListener('ended', () => {
+                        if (!isPaused) {
+                            nextVideo();
+                        }
+                    });
+                    
+                    vid.addEventListener('timeupdate', () => {
+                        if (idx === currentIdx && vid.duration > 0) {
+                            const progress = (vid.currentTime / vid.duration) * 100;
+                            dots[currentIdx].querySelector('.te-dot-progress').style.width = progress + '%';
+                        }
+                    });
+                });
+
+                if (prevBtnHero) prevBtnHero.addEventListener('click', (e) => { e.preventDefault(); prevVideo(); resetInactivity(); });
+                if (nextBtnHero) nextBtnHero.addEventListener('click', (e) => { e.preventDefault(); nextVideo(); resetInactivity(); });
+                
+                dots.forEach(dot => {
+                    dot.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const idx = parseInt(e.currentTarget.dataset.index);
+                        switchVideo(idx);
+                        resetInactivity();
+                    });
+                });
+
+                const controls = heroSlider.querySelector('.te-hero-controls');
+                if (controls) {
+                    controls.addEventListener('mouseenter', () => {
+                        if (inactivityTimer) return; // don't override manual pause
+                        isPaused = true;
+                        videos[currentIdx].pause();
+                    });
+                    controls.addEventListener('mouseleave', () => {
+                        if (inactivityTimer) return;
+                        isPaused = false;
+                        videos[currentIdx].play().catch(() => {});
+                    });
+                }
+
+                document.addEventListener('keydown', (e) => {
+                    const rect = heroSlider.getBoundingClientRect();
+                    if (rect.top < window.innerHeight && rect.bottom > 0) {
+                        if (e.key === 'ArrowLeft') { prevVideo(); resetInactivity(); }
+                        if (e.key === 'ArrowRight') { nextVideo(); resetInactivity(); }
+                    }
+                });
+
+                let touchStartX = 0;
+                heroSlider.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+                heroSlider.addEventListener('touchend', e => {
+                    const touchEndX = e.changedTouches[0].screenX;
+                    if (touchStartX - touchEndX > 50) { nextVideo(); resetInactivity(); }
+                    if (touchEndX - touchStartX > 50) { prevVideo(); resetInactivity(); }
+                }, {passive: true});
+            }
+
+            const track = document.getElementById("onePieceSliderTrack");
+            if (!track) return;
+
+            const slides = Array.from(track.children);
+            const prevBtn = document.querySelector(".te-slider-arrow--left");
+            const nextBtn = document.querySelector(".te-slider-arrow--right");
+            const dotsContainer = document.getElementById("onePieceSliderDots");
+            
+            let currentIndex = 0;
+            const totalSlides = slides.length;
+            let itemsPerScreen = getItemsPerScreen();
+            let maxIndex = Math.max(0, totalSlides - itemsPerScreen);
+            let autoplayTimer = null;
+
+            function buildDots() {
+                dotsContainer.innerHTML = "";
+                // Create one dot for each slide group position
+                for (let i = 0; i <= maxIndex; i++) {
+                    const dot = document.createElement("button");
+                    dot.className = "te-slider-dot" + (i === currentIndex ? " is-active" : "");
+                    dot.setAttribute("aria-label", "Go to slide " + (i + 1));
+                    dot.addEventListener("click", () => {
+                        goToSlide(i);
+                        resetAutoplay();
+                    });
+                    dotsContainer.appendChild(dot);
+                }
+            }
+
+            function getItemsPerScreen() {
+                const width = window.innerWidth;
+                if (width >= 992) return 3; // Desktop
+                if (width >= 768) return 2; // Tablet
+                return 1; // Mobile
+            }
+
+            function updateSlider() {
+                itemsPerScreen = getItemsPerScreen();
+                maxIndex = Math.max(0, totalSlides - itemsPerScreen);
+                
+                if (currentIndex > maxIndex) {
+                    currentIndex = maxIndex;
+                }
+
+                const slideWidthPercent = 100 / itemsPerScreen;
+                const offset = -currentIndex * slideWidthPercent;
+                track.style.transform = `translateX(${offset}%)`;
+
+                const dots = dotsContainer.children;
+                Array.from(dots).forEach((dot, idx) => {
+                    if (idx === currentIndex) {
+                        dot.classList.add("is-active");
+                    } else {
+                        dot.classList.remove("is-active");
+                    }
+                });
+            }
+
+            function goToSlide(index) {
+                currentIndex = index;
+                updateSlider();
+            }
+
+            function nextSlide() {
+                if (currentIndex < maxIndex) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0; // Wrap around to start
+                }
+                updateSlider();
+            }
+
+            function prevSlide() {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                } else {
+                    currentIndex = maxIndex; // Wrap around to end
+                }
+                updateSlider();
+            }
+
+            prevBtn.addEventListener("click", () => {
+                prevSlide();
+                resetAutoplay();
+            });
+
+            nextBtn.addEventListener("click", () => {
+                nextSlide();
+                resetAutoplay();
+            });
+
+            window.addEventListener("resize", () => {
+                const oldItems = itemsPerScreen;
+                itemsPerScreen = getItemsPerScreen();
+                if (oldItems !== itemsPerScreen) {
+                    buildDots();
+                    updateSlider();
+                }
+            });
+
+            // Auto-slide every 20 seconds
+            function startAutoplay() {
+                autoplayTimer = setInterval(nextSlide, 20000);
+            }
+
+            function resetAutoplay() {
+                clearInterval(autoplayTimer);
+                startAutoplay();
+            }
+
+            // Swipe support
+            let startX = 0;
+            let endX = 0;
+
+            track.addEventListener("touchstart", (e) => {
+                startX = e.touches[0].clientX;
+            }, { passive: true });
+
+            track.addEventListener("touchend", (e) => {
+                endX = e.changedTouches[0].clientX;
+                const diff = startX - endX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        nextSlide();
+                    } else {
+                        prevSlide();
+                    }
+                    resetAutoplay();
+                }
+            }, { passive: true });
+
+            // Initialize
+            buildDots();
+            updateSlider();
+            startAutoplay();
+        });
+    </script>
+}

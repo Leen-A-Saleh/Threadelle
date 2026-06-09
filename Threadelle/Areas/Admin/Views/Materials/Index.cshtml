@@ -1,0 +1,89 @@
+@model List<MaterialListItemViewModel>
+@{
+    ViewData["Title"] = "Materials";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2>Materials</h2>
+        <p class="te-sub">@Model.Count material@(Model.Count == 1 ? "" : "s") · raw components used in product pricing</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Upsert"><i class="fas fa-plus"></i> New Material</a>
+</div>
+
+<div class="te-admin-card">
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table te-admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.7rem 1.1rem;">Name</th>
+                        <th>Unit</th>
+                        <th class="text-end">Price / Unit</th>
+                        <th class="text-end">Stock</th>
+                        <th class="text-center">Used by</th>
+                        <th class="text-end" style="padding-right:1.1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Model)
+                    {
+                        <tr data-row>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="te-row-thumb-ph"><i class="fas fa-scroll"></i></span>
+                                    <div class="te-row-title">@m.Name</div>
+                                </div>
+                            </td>
+                            <td><span class="te-badge te-badge-confirmed">@m.Unit</span></td>
+                            <td class="text-end">
+                                <strong style="color:var(--te-rose-mauve);">@m.PricePerUnit.ToString("0.00") JOD</strong>
+                            </td>
+                            <td class="text-end">
+                                @if (m.StockQuantity <= 0)
+                                {
+                                    <span class="te-badge te-badge-cancelled">Out of stock</span>
+                                }
+                                else if (m.StockQuantity < 10)
+                                {
+                                    <span class="te-badge te-badge-pending">@m.StockQuantity.ToString("0.##")</span>
+                                }
+                                else
+                                {
+                                    <span class="te-badge te-badge-delivered">@m.StockQuantity.ToString("0.##")</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <span class="te-row-sub">@m.ProductCount product@(m.ProductCount == 1 ? "" : "s")</span>
+                            </td>
+                            <td class="text-end" style="padding-right:1.1rem;">
+                                <span class="te-act">
+                                    <a class="te-act-btn" asp-action="Upsert" asp-route-id="@m.Id" title="Edit">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <button type="button" class="te-act-btn is-danger te-delete-btn"
+                                            data-url="@Url.Action("Delete", new { id = m.Id })"
+                                            data-name="@m.Name"
+                                            title="Delete">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="te-admin-empty">
+            <i class="fas fa-scroll"></i>
+            <span>No materials yet. Add the raw components used in your products.</span>
+            <a class="btn btn-primary btn-sm mt-2" asp-action="Upsert">
+                <i class="fas fa-plus"></i> New Material
+            </a>
+        </div>
+    }
+</div>

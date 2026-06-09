@@ -1,0 +1,263 @@
+@using Threadelle.Models
+@using Threadelle.Helpers
+@model Threadelle.ViewModels.CustomOrderDetailsViewModel
+@{
+    ViewData["Title"] = Model.Order.Title ?? Model.Order.CustomOrderNumber;
+    var o = Model.Order;
+    var accentColor = o.Status.AccentColor();
+}
+
+<section class="te-section te-section-light te-profile-page te-cod-page">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3"><partial name="_ProfileSidebar" /></div>
+            <div class="col-lg-9">
+
+                <!-- Back -->
+                <div class="mb-3">
+                    <a asp-action="CustomOrders"
+                       class="te-cod-back"><i class="fas fa-arrow-left me-2"></i>My Requests</a>
+                </div>
+
+                <!-- ── HERO HEADER ─────────────────────────────────────────── -->
+                <div class="te-cod-hero">
+                    <div class="te-cod-hero-inner">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="te-badge te-badge-@o.Status.Badge() te-cod-badge">@Model.CurrentStage</span>
+                                <span class="te-cod-number">@o.CustomOrderNumber</span>
+                                @if (o.Category != null)
+                                {
+                                    <span class="te-cod-category"><i class="fas fa-tag me-1"></i>@o.Category.Name</span>
+                                }
+                            </div>
+                            <h1 class="te-cod-title">@o.Title</h1>
+                            <div class="te-cod-meta-row">
+                                <span><i class="far fa-calendar-alt me-1"></i>Submitted @o.CreatedAt.ToString("MMMM d, yyyy")</span>
+                                @if (o.Deadline.HasValue)
+                                {
+                                    <span><i class="fas fa-flag me-1"></i>Due @o.Deadline.Value.ToString("MMMM d, yyyy")</span>
+                                }
+                                @if (o.Budget.HasValue)
+                                {
+                                    <span><i class="fas fa-wallet me-1"></i>Budget @o.Budget.Value.ToString("0.00") JOD</span>
+                                }
+                            </div>
+                        </div>
+                        @if (o.Images.Any())
+                        {
+                            <div class="te-cod-hero-imgs">
+                                @foreach (var img in o.Images.Take(3))
+                                {
+                                    <a href="@img.ImageUrl" target="_blank" class="te-cod-img-thumb">
+                                        <img src="@img.ImageUrl" alt="" />
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- ── STATUS ACTION CARD ──────────────────────────────────── -->
+                <partial name="Partials/_OrderStatusCard" model="Model" />
+
+                <!-- ── BODY ───────────────────────────────────────────────── -->
+                <div class="row g-4">
+
+                    <!-- Left: Details -->
+                    <div class="col-lg-7">
+
+                        <!-- Request details card -->
+                        <div class="te-cod-card mb-4">
+                            <div class="te-cod-card-head">
+                                <i class="fas fa-scroll me-2" style="color:var(--te-dusty-rose);"></i>Your Request
+                            </div>
+                            <div class="te-cod-card-body">
+                                @if (o.Budget.HasValue || o.Deadline.HasValue)
+                                {
+                                    <div class="te-cod-meta-grid">
+                                        @if (o.Budget.HasValue)
+                                        {
+                                            <div class="te-cod-meta-item">
+                                                <span class="te-cod-meta-label">Budget</span>
+                                                <strong class="te-cod-meta-value">@o.Budget.Value.ToString("0.00") JOD</strong>
+                                            </div>
+                                        }
+                                        @if (o.EstimatedPrice.HasValue)
+                                        {
+                                            <div class="te-cod-meta-item">
+                                                <span class="te-cod-meta-label">Quoted Price</span>
+                                                <strong class="te-cod-meta-value" style="color:#16a34a;">@o.EstimatedPrice.Value.ToString("0.00") JOD</strong>
+                                            </div>
+                                        }
+                                        @if (o.EstimatedDays.HasValue)
+                                        {
+                                            <div class="te-cod-meta-item">
+                                                <span class="te-cod-meta-label">Est. Days</span>
+                                                <strong class="te-cod-meta-value">~@o.EstimatedDays days</strong>
+                                            </div>
+                                        }
+                                        @if (o.Deadline.HasValue)
+                                        {
+                                            <div class="te-cod-meta-item">
+                                                <span class="te-cod-meta-label">Needed By</span>
+                                                <strong class="te-cod-meta-value">@o.Deadline.Value.ToString("MMM d, yyyy")</strong>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                @if (o.Colors.Any())
+                                {
+                                    <div class="mt-3 pt-3" style="border-top:1px dashed var(--te-border);">
+                                        <div class="te-cod-desc-label mb-2">Requested Colors</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach (var cc in o.Colors)
+                                            {
+                                                <span class="te-cod-color-chip">
+                                                    @if (!string.IsNullOrWhiteSpace(cc.Color?.HexCode))
+                                                    {
+                                                        <span class="te-cod-color-dot" style="background:@cc.Color.HexCode;"></span>
+                                                    }
+                                                    @cc.Color?.Name
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Reference images -->
+                        @if (o.Images.Any())
+                        {
+                            <div class="te-cod-card mb-4">
+                                <div class="te-cod-card-head">
+                                    <i class="fas fa-images me-2" style="color:var(--te-dusty-rose);"></i>Reference Images
+                                </div>
+                                <div class="te-cod-card-body">
+                                    <div class="te-cod-img-grid">
+                                        @foreach (var img in o.Images)
+                                        {
+                                            <a href="@img.ImageUrl" target="_blank" class="te-cod-img-cell">
+                                                <img src="@img.ImageUrl" alt="" />
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+
+                    <!-- Right: Timeline -->
+                    <div class="col-lg-5">
+                        <partial name="Partials/_OrderTimeline" model="Model" />
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<style>
+/* ── CustomOrderDetails page styles ────────────────────────────────── */
+.te-cod-page { background: #faf8f6 !important; }
+
+.te-cod-back {
+    color: var(--te-text-muted); font-size:.82rem; text-decoration:none;
+    display:inline-flex; align-items:center; gap:.3rem;
+    transition: color .2s;
+}
+.te-cod-back:hover { color: var(--te-deep-rose); }
+
+/* Hero */
+.te-cod-hero {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #fff9f7 0%, #fff 100%);
+    border: 1px solid var(--te-border);
+    box-shadow: 0 4px 24px rgba(122,59,90,.07);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+}
+.te-cod-hero-inner {
+    padding: 1.75rem 2rem;
+    display: flex; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;
+}
+.te-cod-badge  { font-size:.72rem; letter-spacing:.04em; text-transform:uppercase; }
+.te-cod-number { font-size:.72rem; color:var(--te-text-muted); font-family:monospace; }
+.te-cod-category { font-size:.75rem; color:var(--te-dusty-rose); }
+.te-cod-title  { font-family:var(--font-heading); font-size:clamp(1.35rem,3vw,1.95rem); color:var(--te-text-dark); margin:.3rem 0 .6rem; }
+.te-cod-meta-row { display:flex; flex-wrap:wrap; gap:.5rem 1.1rem; font-size:.75rem; color:var(--te-text-muted); }
+.te-cod-meta-row i { color: var(--te-dusty-rose); }
+
+.te-cod-hero-imgs { display:flex; gap:.5rem; flex-shrink:0; align-self:flex-start; }
+.te-cod-img-thumb {
+    width:70px; height:70px; border-radius:12px; overflow:hidden;
+    border:2px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,.09); display:block;
+}
+.te-cod-img-thumb img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+.te-cod-img-thumb:hover img { transform:scale(1.08); }
+
+/* Cards */
+.te-cod-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--te-border);
+    box-shadow: 0 2px 12px rgba(122,59,90,.05);
+    overflow: hidden;
+}
+.te-cod-card-head {
+    padding: .9rem 1.35rem;
+    background: linear-gradient(to right, var(--te-light-blush), #fff);
+    border-bottom: 1px solid var(--te-border);
+    font-size: .88rem; font-weight: 700; color: var(--te-deep-rose);
+    display: flex; align-items: center;
+}
+.te-cod-card-body { padding: 1.35rem; }
+
+/* Meta grid */
+.te-cod-meta-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1rem; margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem; border-bottom: 1px dashed var(--te-border);
+}
+.te-cod-meta-label { font-size:.67rem; text-transform:uppercase; letter-spacing:.07em; color:var(--te-text-muted); display:block; margin-bottom:.2rem; }
+.te-cod-meta-value { font-size:1rem; color:var(--te-text-dark); font-weight:700; }
+
+.te-cod-desc-label { font-size:.67rem; text-transform:uppercase; letter-spacing:.07em; color:var(--te-text-muted); margin-bottom:.5rem; }
+.te-cod-desc {
+    color:var(--te-text-secondary); line-height:1.8; white-space:pre-line;
+    margin:0; font-size:.93rem;
+}
+
+.te-cod-color-chip {
+    display:inline-flex; align-items:center; gap:.35rem;
+    padding:.3rem .75rem; border-radius:20px;
+    background:rgba(255,255,255,.9); border:1px solid var(--te-border);
+    font-size:.78rem; color:var(--te-text-dark);
+}
+.te-cod-color-dot {
+    width:11px; height:11px; border-radius:50%;
+    border:1px solid rgba(0,0,0,.1); flex-shrink:0;
+}
+
+/* Image grid */
+.te-cod-img-grid { display:flex; flex-wrap:wrap; gap:.6rem; }
+.te-cod-img-cell {
+    width:88px; height:88px; border-radius:10px; overflow:hidden;
+    border:1px solid var(--te-border); display:block;
+    transition:transform .25s; box-shadow:0 2px 6px rgba(0,0,0,.05);
+}
+.te-cod-img-cell:hover { transform:scale(1.04); }
+.te-cod-img-cell img { width:100%; height:100%; object-fit:cover; }
+
+@@media (max-width: 576px) {
+    .te-cod-hero-inner { padding: 1.25rem; }
+    .te-cod-img-thumb  { width:56px; height:56px; }
+}
+</style>
+}

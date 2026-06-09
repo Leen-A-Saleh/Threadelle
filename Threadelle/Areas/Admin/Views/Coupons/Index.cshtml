@@ -1,0 +1,110 @@
+@model IEnumerable<Threadelle.Models.Coupon>
+@{
+    ViewData["Title"] = "Coupons";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2><i class="fas fa-ticket-alt me-2" style="color:var(--te-dusty-rose);"></i>Coupons</h2>
+        <p class="te-sub">Manage discount codes and promotions</p>
+    </div>
+    <a asp-action="Upsert" class="btn btn-primary"><i class="fas fa-plus"></i> New Coupon</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="te-admin-card">
+        <div class="te-admin-empty">
+            <i class="fas fa-ticket-alt"></i>
+            <span>No coupons yet.</span>
+            <a class="btn btn-primary btn-sm mt-2" asp-action="Upsert"><i class="fas fa-plus"></i> New Coupon</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="te-admin-card">
+        <div class="table-responsive">
+            <table class="table te-admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.7rem 1rem;">Code</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Usage</th>
+                        <th>Valid Until</th>
+                        <th>Active</th>
+                        <th class="text-end" style="padding-right:1.1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="padding:.7rem 1rem;">
+                                <div class="te-row-title">@item.Code</div>
+
+                            </td>
+                            <td>
+                                <span class="te-badge te-badge-pending">
+                                    @item.DiscountType
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.DiscountType == Threadelle.Models.DiscountType.Percentage)
+                                {
+                                    <span>@item.DiscountValue.ToString("0.##")%</span>
+                                }
+                                else if (item.DiscountType == Threadelle.Models.DiscountType.FixedAmount)
+                                {
+                                    <span>@Threadelle.Helpers.CurrencyFormatter.Format(item.DiscountValue)</span>
+                                }
+                                else
+                                {
+                                    <span>Free Shipping</span>
+                                }
+                            </td>
+                            <td class="te-row-sub">@item.UsedCount / @(item.UsageLimit?.ToString() ?? "∞")</td>
+                            <td class="te-row-sub">@(item.EndDate?.ToString("MMM dd, yyyy") ?? "Never")</td>
+                            <td>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input toggle-active" type="checkbox"
+                                           id="activeSwitch_@item.Id" data-id="@item.Id"
+                                           @(item.IsActive ? "checked" : "") />
+                                </div>
+                            </td>
+                            <td class="text-end" style="padding-right:1.1rem;">
+                                <span class="te-act">
+                                    <a class="te-act-btn" asp-action="Details" asp-route-id="@item.Id" title="Details"><i class="fas fa-eye"></i></a>
+                                    <a class="te-act-btn" asp-action="Upsert" asp-route-id="@item.Id" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <button type="button" class="te-act-btn is-danger te-delete-btn"
+                                            data-url="@Url.Action("Delete", new { id = item.Id })"
+                                            data-name="@item.Code" title="Delete">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    document.querySelectorAll('.toggle-active').forEach(function (el) {
+        el.addEventListener('change', function () {
+            var id = this.dataset.id;
+            fetch('@Url.Action("ToggleActive")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': window.TE.token },
+                body: 'id=' + id
+            }).then(r => r.json()).then(function (data) {
+                if (!data.success) window.teToast && window.teToast(data.message, 'error');
+            });
+        });
+    });
+</script>
+}

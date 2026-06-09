@@ -1,0 +1,14 @@
+/* Scoped layout overrides — brand tokens live in site.css */
+
+a.navbar-brand {
+  white-space: normal;
+  word-break: normal;
+}
+
+.footer {
+  line-height: normal;
+}
+
+.te-heart {
+  color: #D8A7A7;
+}

@@ -1,0 +1,130 @@
+@model Threadelle.Models.ApplicationUser
+@{
+    ViewData["Title"] = Model.FullName;
+    var orders = ViewBag.Orders as List<Threadelle.Models.Order> ?? new();
+    var customOrders = ViewBag.CustomOrders as List<Threadelle.Models.CustomOrder> ?? new();
+}
+
+<div class="mb-4">
+    <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="te-clear-link mb-2">
+        <i class="fas fa-arrow-left"></i> Back to Customers
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+        <div class="te-admin-card">
+            <div class="te-admin-card-body text-center">
+                @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                {
+                    <img src="@Model.ProfileImageUrl" class="rounded-circle mb-3" style="width:80px;height:80px;object-fit:cover;" alt="" />
+                }
+                else
+                {
+                    <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--te-dusty-rose),var(--te-rose-mauve));color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin:0 auto 1rem;">
+                        @(Model.FullName?.FirstOrDefault().ToString().ToUpper() ?? "?")
+                    </div>
+                }
+                <h4 style="font-family:var(--font-heading);color:var(--te-deep-rose);">@Model.FullName</h4>
+                <p style="color:var(--te-text-muted);font-size:.875rem;">@Model.Email</p>
+                @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                {
+                    <p style="color:var(--te-text-secondary);font-size:.875rem;"><i class="fas fa-phone me-1"></i> @Model.PhoneNumber</p>
+                }
+                @if (Model.BirthDate.HasValue)
+                {
+                    <p style="color:var(--te-text-secondary);font-size:.875rem;"><i class="fas fa-cake-candles me-1"></i> @Model.BirthDate.Value.ToString("dd MMM yyyy")</p>
+                }
+                <div class="mt-3">
+                    @if (Model.IsActive)
+                    {
+                        <span class="te-badge" style="background:rgba(100,160,100,.12);color:#3d6b3d;margin-bottom:.75rem;display:inline-flex;">Active</span>
+                    }
+                    else
+                    {
+                        <span class="te-badge te-badge-cancelled" style="margin-bottom:.75rem;display:inline-flex;">Inactive</span>
+                    }
+                </div>
+                <form asp-area="Admin" asp-controller="Users" asp-action="ToggleActive" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn @(Model.IsActive ? "btn-outline-primary" : "btn-primary") btn-sm w-100"
+                            style="@(Model.IsActive ? "color:#C0697B;border-color:#C0697B;" : "")">
+                        @(Model.IsActive ? "Deactivate Account" : "Activate Account")
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="te-admin-card mt-3">
+            <div class="te-admin-card-head"><h5>Order Stats</h5></div>
+            <div class="te-admin-card-body">
+                <div class="d-flex justify-content-between py-2 border-bottom" style="border-color:var(--te-border)!important;">
+                    <span style="color:var(--te-text-secondary);">Total Orders</span>
+                    <strong style="color:var(--te-deep-rose);">@orders.Count</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom" style="border-color:var(--te-border)!important;">
+                    <span style="color:var(--te-text-secondary);">Total Spent</span>
+                    <strong style="color:var(--te-rose-mauve);">@Threadelle.Helpers.CurrencyFormatter.Format(orders.Sum(o => o.TotalPrice))</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span style="color:var(--te-text-secondary);">Custom Requests</span>
+                    <strong style="color:var(--te-deep-rose);">@customOrders.Count</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders -->
+    <div class="col-lg-8">
+        <div class="te-admin-card mb-3">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-bag-shopping me-2" style="color:var(--te-dusty-rose);"></i>Recent Orders</h5>
+                <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="te-clear-link">View all orders</a>
+            </div>
+            @if (!orders.Any())
+            {
+                <div class="te-admin-card-body te-empty-inline"><p>No orders yet.</p></div>
+            }
+            else
+            {
+                <div class="te-admin-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table te-admin-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var o in orders)
+                                {
+                                    <tr>
+                                        <td><strong style="color:var(--te-deep-rose);">@o.OrderNumber</strong></td>
+                                        <td style="color:var(--te-text-muted);font-size:.8rem;">@o.CreatedAt.ToString("dd MMM yyyy")</td>
+                                        <td>@o.OrderItems.Count item(s)</td>
+                                        <td style="color:var(--te-rose-mauve);font-weight:700;">@Threadelle.Helpers.CurrencyFormatter.Format(o.TotalPrice)</td>
+                                        <td>
+                                            <span class="te-badge te-badge-@o.Status.ToString().ToLower()">@o.Status</span>
+                                        </td>
+                                        <td>
+                                            <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@o.Id"
+                                               class="btn btn-outline-primary btn-sm">View</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

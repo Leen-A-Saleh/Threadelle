@@ -1,0 +1,382 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    string Truncate(string s, int n) => string.IsNullOrEmpty(s) ? "" : (s.Length <= n ? s : s.Substring(0, n).TrimEnd() + "…");
+    string Initial(string s) => string.IsNullOrWhiteSpace(s) ? "?" : s.Trim().Substring(0, 1).ToUpper();
+}
+
+<div class="mb-4 d-flex align-items-start justify-content-between flex-wrap gap-3">
+    <div>
+        <h2 style="font-family:var(--font-heading);color:var(--te-deep-rose);margin-bottom:.15rem;">Welcome back</h2>
+        <p style="color:var(--te-text-muted);margin:0;">Here's how the ThreadElle studio is doing today.</p>
+    </div>
+    <!-- Quick Actions -->
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-area="Admin" asp-controller="Products" asp-action="Upsert" class="te-admin-btn te-admin-btn-sm te-admin-btn-primary">
+            <i class="fas fa-plus"></i> New Product
+        </a>
+        <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="te-admin-btn te-admin-btn-sm te-admin-btn-outline">
+            <i class="fas fa-bag-shopping"></i> Orders
+        </a>
+        <a asp-area="Admin" asp-controller="Coupons" asp-action="Upsert" class="te-admin-btn te-admin-btn-sm te-admin-btn-outline">
+            <i class="fas fa-ticket-alt"></i> New Coupon
+        </a>
+    </div>
+</div>
+
+<!-- ── PRIMARY STAT CARDS ────────────────────────────────────────────────── -->
+<div class="row g-3">
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card">
+            <div class="te-stat-icon is-gold"><i class="fas fa-coins"></i></div>
+            <div>
+                <div class="te-stat-value">@Model.TotalRevenue.ToString("0.##") <span style="font-size:.75rem;font-weight:600;">JOD</span></div>
+                <div class="te-stat-label">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card">
+            <div class="te-stat-icon"><i class="fas fa-bag-shopping"></i></div>
+            <div>
+                <div class="te-stat-value">@Model.TotalOrders</div>
+                <div class="te-stat-label">Total Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card">
+            <div class="te-stat-icon is-deep"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="te-stat-value">@Model.TotalUsers</div>
+                <div class="te-stat-label">Total Customers</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card">
+            <div class="te-stat-icon is-rose"><i class="fas fa-gem"></i></div>
+            <div>
+                <div class="te-stat-value">@Model.TotalProducts</div>
+                <div class="te-stat-label">Active Products</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── SECONDARY STAT CARDS ─────────────────────────────────────────────── -->
+<div class="row g-3 mt-0">
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card te-stat-card-sm">
+            <div class="te-stat-icon is-gold" style="width:36px;height:36px;font-size:.9rem;"><i class="fas fa-calendar-days"></i></div>
+            <div>
+                <div class="te-stat-value" style="font-size:1.3rem;">@Model.MonthRevenue.ToString("0.##") <span style="font-size:.7rem;">JOD</span></div>
+                <div class="te-stat-label">This Month Revenue</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card te-stat-card-sm">
+            <div class="te-stat-icon" style="width:36px;height:36px;font-size:.9rem;"><i class="fas fa-hourglass-half"></i></div>
+            <div>
+                <div class="te-stat-value" style="font-size:1.3rem;">@Model.PendingOrders</div>
+                <div class="te-stat-label">Pending Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card te-stat-card-sm">
+            <div class="te-stat-icon is-rose" style="width:36px;height:36px;font-size:.9rem;"><i class="fas fa-wand-magic-sparkles"></i></div>
+            <div>
+                <div class="te-stat-value" style="font-size:1.3rem;">@Model.PendingCustomOrders</div>
+                <div class="te-stat-label">Pending Custom Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card te-stat-card-sm @(Model.LowStockProducts > 0 ? "te-stat-card-warn" : "")">
+            <div class="te-stat-icon @(Model.LowStockProducts > 0 ? "is-warn" : "")" style="width:36px;height:36px;font-size:.9rem;"><i class="fas fa-boxes-stacked"></i></div>
+            <div>
+                <div class="te-stat-value" style="font-size:1.3rem;">@Model.LowStockProducts</div>
+                <div class="te-stat-label">Low Stock Products</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-xl-3 col-md-6">
+        <div class="te-stat-card te-stat-card-sm">
+            <div class="te-stat-icon is-rose" style="width:36px;height:36px;font-size:.9rem;"><i class="fas fa-ticket-alt"></i></div>
+            <div>
+                <div class="te-stat-value" style="font-size:1.3rem;">@Model.ActiveCoupons</div>
+                <div class="te-stat-label">Active Coupons</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── REVENUE CHART + TOP PRODUCTS ─────────────────────────────────────── -->
+<div class="row g-3 mt-1">
+    <div class="col-lg-8">
+        <div class="te-admin-card h-100">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-chart-line me-2" style="color:var(--te-dusty-rose);"></i>Revenue — Last 7 Days</h5>
+            </div>
+            <div class="te-admin-card-body">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="te-admin-card h-100">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-trophy me-2" style="color:var(--te-dusty-rose);"></i>Top Products</h5>
+            </div>
+            <div class="te-admin-card-body p-0">
+                @if (Model.TopProducts.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table te-admin-table mb-0">
+                            <tbody>
+                                @foreach (var tp in Model.TopProducts)
+                                {
+                                    <tr>
+                                        <td style="padding:.5rem 1rem;width:38px;">
+                                            @if (!string.IsNullOrEmpty(tp.ImageUrl))
+                                            {
+                                                <img src="@tp.ImageUrl" class="te-row-thumb" alt="" />
+                                            }
+                                            else
+                                            {
+                                                <span class="te-row-thumb-ph"><i class="fas fa-gem"></i></span>
+                                            }
+                                        </td>
+                                        <td style="padding:.5rem .5rem;">
+                                            <div class="te-row-title" style="font-size:.82rem;">@Truncate(tp.Name, 26)</div>
+                                            <div class="te-row-sub">@tp.OrderCount order@(tp.OrderCount == 1 ? "" : "s")</div>
+                                        </td>
+                                        <td class="text-end" style="padding:.5rem 1rem;">
+                                            <strong style="color:var(--te-rose-mauve);font-size:.82rem;">@tp.Revenue.ToString("0.##") JOD</strong>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="te-admin-empty"><i class="fas fa-trophy"></i><span>No sales yet.</span></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── RECENT ACTIVITY ─────────────────────────────────────────────────── -->
+<div class="row g-3 mt-1">
+
+    <!-- Recent Orders -->
+    <div class="col-lg-6">
+        <div class="te-admin-card h-100">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-bag-shopping me-2" style="color:var(--te-dusty-rose);"></i>Recent Orders</h5>
+                <a class="te-clear-link" asp-area="Admin" asp-controller="Orders" asp-action="Index">View all</a>
+            </div>
+            <div class="te-admin-card-body p-0">
+                @if (Model.RecentOrders.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table te-admin-table mb-0">
+                            <tbody>
+                                @foreach (var o in Model.RecentOrders)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="te-row-title">@o.OrderNumber</div>
+                                            <div class="te-row-sub">@o.CustomerName · @TimeAgo.From(o.CreatedAt)</div>
+                                        </td>
+                                        <td class="text-end"><strong style="color:var(--te-rose-mauve);">@o.Total.ToString("0.00") JOD</strong></td>
+                                        <td class="text-end"><span class="te-badge te-badge-@o.Status.Badge()">@o.Status.Friendly()</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="te-admin-empty"><i class="fas fa-bag-shopping"></i><span>No orders yet.</span></div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Customers -->
+    <div class="col-lg-6">
+        <div class="te-admin-card h-100">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-users me-2" style="color:var(--te-dusty-rose);"></i>New Customers</h5>
+                <a class="te-clear-link" asp-area="Admin" asp-controller="Users" asp-action="Index">View all</a>
+            </div>
+            <div class="te-admin-card-body p-0">
+                @if (Model.RecentUsers.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table te-admin-table mb-0">
+                            <tbody>
+                                @foreach (var u in Model.RecentUsers)
+                                {
+                                    <tr>
+                                        <td style="width:46px;">
+                                            <span class="te-account-avatar-initial">@Initial(u.FullName)</span>
+                                        </td>
+                                        <td>
+                                            <div class="te-row-title">@u.FullName</div>
+                                            <div class="te-row-sub">@u.Email</div>
+                                        </td>
+                                        <td class="text-end te-row-sub">@TimeAgo.From(u.CreatedAt)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="te-admin-empty"><i class="fas fa-users"></i><span>No customers yet.</span></div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Testimonials -->
+    <div class="col-lg-6">
+        <div class="te-admin-card h-100">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-comment-dots me-2" style="color:var(--te-dusty-rose);"></i>Recent Testimonials</h5>
+                <a class="te-clear-link" asp-area="Admin" asp-controller="Testimonials" asp-action="Index">View all</a>
+            </div>
+            <div class="te-admin-card-body p-0">
+                @if (Model.RecentTestimonials.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table te-admin-table mb-0">
+                            <tbody>
+                                @foreach (var t in Model.RecentTestimonials)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="te-row-title">
+                                                @t.UserName
+                                                <span style="color:var(--te-gold);font-size:.8rem;margin-left:.35rem;">@(new string('★', t.Rating))</span>
+                                            </div>
+                                            <div class="te-row-sub">@Truncate(t.Message, 60)</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="te-badge @(t.IsApproved ? "te-badge-delivered" : "te-badge-pending")">
+                                                @(t.IsApproved ? "Approved" : "Pending")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="te-admin-empty"><i class="fas fa-comment-dots"></i><span>No testimonials yet.</span></div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Custom Orders -->
+    <div class="col-lg-6">
+        <div class="te-admin-card h-100">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-wand-magic-sparkles me-2" style="color:var(--te-dusty-rose);"></i>Recent Custom Orders</h5>
+                <a class="te-clear-link" asp-area="Admin" asp-controller="CustomOrders" asp-action="Index">View all</a>
+            </div>
+            <div class="te-admin-card-body p-0">
+                @if (Model.RecentCustomOrders.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table te-admin-table mb-0">
+                            <tbody>
+                                @foreach (var c in Model.RecentCustomOrders)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="te-row-title">@(string.IsNullOrWhiteSpace(c.Title) ? c.CustomOrderNumber : c.Title)</div>
+                                            <div class="te-row-sub">@c.UserName · @TimeAgo.From(c.CreatedAt)</div>
+                                        </td>
+                                        <td class="text-end"><span class="te-badge te-badge-@c.Status.Badge()">@c.Status.Friendly()</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="te-admin-empty"><i class="fas fa-wand-magic-sparkles"></i><span>No custom orders yet.</span></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChartLabels));
+    var values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChartValues));
+    var ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+
+    var style = getComputedStyle(document.documentElement);
+    var rose = style.getPropertyValue('--te-dusty-rose').trim() || '#C9A7A7';
+    var blush = style.getPropertyValue('--te-light-blush').trim() || '#F8EAE5';
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Revenue (JOD)',
+                data: values,
+                borderColor: rose,
+                backgroundColor: blush + '80',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: rose,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) { return ' ' + ctx.parsed.y.toFixed(2) + ' JOD'; }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: function (v) { return v + ' JOD'; } },
+                    grid: { color: 'rgba(0,0,0,.04)' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
+</script>
+}

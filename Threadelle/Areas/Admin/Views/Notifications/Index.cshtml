@@ -1,0 +1,323 @@
+@using Threadelle.Models
+@{
+    ViewData["Title"] = "Notifications";
+    var users = ViewBag.Users as List<ApplicationUser> ?? new();
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2><i class="fas fa-bell me-2" style="color:var(--te-dusty-rose);"></i>Notifications</h2>
+        <p class="te-sub">Send messages to customers &amp; review your admin inbox</p>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- ── Send form ─────────────────────────────────────────── -->
+    <div class="col-lg-5">
+        <div class="te-admin-card">
+            <div class="te-admin-card-head">
+                <h5><i class="fas fa-paper-plane me-2" style="color:var(--te-dusty-rose);"></i>Send to Customers</h5>
+            </div>
+            <div class="te-admin-card-body">
+                <form asp-area="Admin" asp-controller="Notifications" asp-action="Send" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="te-admin-label">Recipient</label>
+                        <select name="userId" class="te-admin-ctrl">
+                            <option value="">📢 All Users (Broadcast)</option>
+                            @foreach (var u in users)
+                            {
+                                <option value="@u.Id">@u.FullName (@u.Email)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="te-admin-label">Type</label>
+                        <select name="type" class="te-admin-ctrl">
+                            <option value="Promotion">🎁 Promotion</option>
+                            <option value="System">⚙️ System</option>
+                            <option value="OrderUpdate">📦 Order Update</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="te-admin-label">Title</label>
+                        <input type="text" name="title" class="te-admin-ctrl" placeholder="Notification title" required maxlength="100" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="te-admin-label">Message</label>
+                        <textarea name="message" class="te-admin-ctrl" rows="4" placeholder="Write your message…" required maxlength="500" style="resize:none;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i>Send Notification
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Admin inbox ───────────────────────────────────────── -->
+    <div class="col-lg-7">
+        <div class="te-admin-card">
+            <div class="te-admin-card-head d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-inbox me-2" style="color:var(--te-dusty-rose);"></i>Admin Inbox</h5>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="te-badge te-badge-pending d-none" id="historyUnreadBadge">0 unread</span>
+                    <button class="te-admin-btn te-admin-btn-sm te-admin-btn-outline" id="btnMarkAllRead" style="font-size:.75rem;">
+                        <i class="fas fa-check-double me-1"></i>Mark all read
+                    </button>
+                    <button class="te-admin-btn te-admin-btn-sm te-admin-btn-outline" id="btnClearRead" style="font-size:.75rem;color:#ef4444;border-color:#ef4444;">
+                        <i class="fas fa-broom me-1"></i>Clear read
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter pills -->
+            <div class="te-admin-card-body border-bottom pb-2" style="padding-top:.75rem;">
+                <div class="d-flex gap-2 flex-wrap" id="historyFilters">
+                    <button class="te-notif-filter active" data-type="">All</button>
+                    <button class="te-notif-filter" data-type="AdminCreate">Created</button>
+                    <button class="te-notif-filter" data-type="AdminUpdate">Updated</button>
+                    <button class="te-notif-filter" data-type="AdminDelete">Deleted</button>
+                    <button class="te-notif-filter" data-type="NewOrder">Orders</button>
+                    <button class="te-notif-filter" data-type="NewCustomOrder">Custom</button>
+                    <button class="te-notif-filter" data-type="NewReview,NewTestimonial">Reviews</button>
+                    <button class="te-notif-filter" data-type="NewUserRegistered">Users</button>
+                </div>
+            </div>
+
+            <div id="historyList" style="max-height:520px;overflow-y:auto;">
+                <div class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin" style="color:var(--te-blush);font-size:1.4rem;"></i>
+                </div>
+            </div>
+
+            <div class="te-admin-card-body border-top d-flex justify-content-center gap-2 py-2" id="historyPager" style="display:none!important;"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<style>
+    /* ── Notification filter pills ── */
+    .te-notif-filter {
+        background: transparent;
+        border: 1px solid var(--te-border);
+        border-radius: 20px;
+        padding: .2rem .75rem;
+        font-size: .74rem;
+        color: var(--te-text-secondary);
+        cursor: pointer;
+        transition: all .2s;
+        font-family: var(--font-body);
+    }
+    .te-notif-filter:hover { border-color: var(--te-dusty-rose); color: var(--te-dusty-rose); }
+    .te-notif-filter.active { background: var(--te-dusty-rose); border-color: var(--te-dusty-rose); color: #fff; }
+
+    /* ── History items ── */
+    .te-history-item {
+        display: flex;
+        align-items: flex-start;
+        gap: .9rem;
+        padding: .85rem 1.1rem;
+        border-bottom: 1px solid var(--te-border);
+        cursor: default;
+        transition: background .15s;
+    }
+    .te-history-item:last-child { border-bottom: none; }
+    .te-history-item.unread { background: rgba(242,224,228,.3); }
+    .te-history-item:hover { background: var(--te-light-blush); }
+
+    .te-history-icon {
+        width: 36px; height: 36px; flex: 0 0 36px;
+        border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .85rem;
+    }
+    .te-history-body { flex: 1; min-width: 0; }
+    .te-history-title {
+        font-size: .82rem; font-weight: 600;
+        color: var(--te-deep-rose); margin: 0 0 .1rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .te-history-msg { font-size: .78rem; color: var(--te-text-secondary); margin: 0 0 .2rem; }
+    .te-history-meta { font-size: .7rem; color: var(--te-text-muted); display: flex; gap: .5rem; align-items: center; }
+    .te-unread-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--te-dusty-rose); flex-shrink: 0; margin-top: 4px;
+    }
+    .te-history-actions { display: flex; flex-direction: column; gap: .25rem; align-items: flex-end; }
+    .te-history-del { background: none; border: none; color: var(--te-text-muted); font-size: .75rem; cursor: pointer; padding: 0; line-height: 1; }
+    .te-history-del:hover { color: #ef4444; }
+    .te-history-url { font-size: .72rem; color: var(--te-rose-mauve); text-decoration: none; }
+    .te-history-url:hover { text-decoration: underline; }
+</style>
+<script>
+(function () {
+    var token = (window.TE && window.TE.token) || '';
+    var currentFilter = '';
+    var currentPage = 1;
+
+    var NOTIF_META = {
+        AdminCreate:      { icon: 'check-circle',        color: '#22c55e' },
+        AdminUpdate:      { icon: 'pen',                 color: '#f59e0b' },
+        AdminDelete:      { icon: 'trash-can',           color: '#ef4444' },
+        NewOrder:         { icon: 'bag-shopping',        color: '#3b82f6' },
+        NewCustomOrder:   { icon: 'wand-magic-sparkles', color: '#8b5cf6' },
+        NewReview:        { icon: 'star',                color: '#ec4899' },
+        NewTestimonial:   { icon: 'comment-dots',        color: '#ec4899' },
+        NewUserRegistered:{ icon: 'user-plus',           color: '#14b8a6' }
+    };
+
+    function metaFor(type) { return NOTIF_META[type] || { icon: 'bell', color: '#C97B8E' }; }
+    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    function postJson(url) {
+        return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token }, body: '__RequestVerificationToken=' + encodeURIComponent(token) }).then(r => r.json());
+    }
+
+    function load(page) {
+        page = page || 1;
+        currentPage = page;
+        var list = document.getElementById('historyList');
+        list.innerHTML = '<div class="text-center py-5"><i class="fas fa-spinner fa-spin" style="color:var(--te-blush);font-size:1.4rem;"></i></div>';
+
+        fetch('/Admin/Notifications/AdminHistory?page=' + page, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(function (d) {
+                // Update unread badge
+                fetch('/Admin/Notifications/AdminCount', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(r => r.json())
+                    .then(function (c) {
+                        var badge = document.getElementById('historyUnreadBadge');
+                        if (badge) {
+                            if (c.unread > 0) { badge.textContent = c.unread + ' unread'; badge.classList.remove('d-none'); }
+                            else badge.classList.add('d-none');
+                        }
+                    });
+
+                var items = d.items;
+
+                // Client-side type filter
+                if (currentFilter) {
+                    var types = currentFilter.split(',');
+                    items = items.filter(function (n) { return types.indexOf(n.type) !== -1; });
+                }
+
+                if (!items.length) {
+                    list.innerHTML = '<div class="text-center py-5" style="color:var(--te-text-muted);font-size:.85rem;"><i class="far fa-bell" style="font-size:2rem;display:block;margin-bottom:.5rem;color:var(--te-blush);"></i>No notifications here</div>';
+                    document.getElementById('historyPager').style.display = 'none';
+                    return;
+                }
+
+                list.innerHTML = '';
+                items.forEach(function (n) {
+                    var m = metaFor(n.type);
+                    var row = document.createElement('div');
+                    row.className = 'te-history-item' + (n.isRead ? '' : ' unread');
+                    row.dataset.id = n.id;
+                    row.innerHTML =
+                        '<div class="te-history-icon" style="background:' + m.color + '1a;color:' + m.color + '">' +
+                            '<i class="fas fa-' + m.icon + '"></i>' +
+                        '</div>' +
+                        '<div class="te-history-body">' +
+                            '<div class="te-history-title">' + esc(n.title) + '</div>' +
+                            '<div class="te-history-msg">' + esc(n.message) + '</div>' +
+                            '<div class="te-history-meta">' +
+                                (!n.isRead ? '<span class="te-unread-dot"></span>' : '') +
+                                '<span>' + esc(n.timeAgo) + '</span>' +
+                                '<span>·</span><span>' + esc(n.date) + '</span>' +
+                                (n.url ? '<span>·</span><a href="' + esc(n.url) + '" class="te-history-url">View <i class="fas fa-arrow-right" style="font-size:.6rem;"></i></a>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="te-history-actions">' +
+                            '<button class="te-history-del" title="Delete" data-action="del" data-id="' + n.id + '"><i class="fas fa-times"></i></button>' +
+                            (!n.isRead ? '<button class="te-history-del" title="Mark read" data-action="read" data-id="' + n.id + '" style="color:var(--te-rose-mauve)"><i class="fas fa-check"></i></button>' : '') +
+                        '</div>';
+                    list.appendChild(row);
+                });
+
+                // Pager
+                var pager = document.getElementById('historyPager');
+                if (d.totalPages > 1) {
+                    pager.style.display = '';
+                    pager.innerHTML = '';
+                    for (var i = 1; i <= d.totalPages; i++) {
+                        var btn = document.createElement('button');
+                        btn.textContent = i;
+                        btn.className = 'btn btn-sm ' + (i === d.page ? 'btn-primary' : 'btn-outline-primary');
+                        btn.dataset.page = i;
+                        btn.addEventListener('click', function() { load(parseInt(this.dataset.page, 10)); });
+                        pager.appendChild(btn);
+                    }
+                } else { pager.style.display = 'none'; }
+            })
+            .catch(function () {
+                list.innerHTML = '<p class="text-center text-muted py-3 small">Could not load notifications.</p>';
+            });
+    }
+
+    // Row action buttons (delete / mark read)
+    document.getElementById('historyList').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        var id = btn.dataset.id;
+        var action = btn.dataset.action;
+
+        if (action === 'del') {
+            postJson('/Admin/Notifications/AdminDeleteOne?id=' + id + '&__RequestVerificationToken=' + encodeURIComponent(token))
+                .then(function () {
+                    var row = document.querySelector('.te-history-item[data-id="' + id + '"]');
+                    if (row) { row.style.opacity = '0'; row.style.transition = 'opacity .2s'; setTimeout(function () { row.remove(); }, 220); }
+                });
+            postJson('/Admin/Notifications/AdminDeleteOne?id=' + id);
+        }
+        if (action === 'read') {
+            postJson('/Admin/Notifications/AdminMarkRead?id=' + id);
+            var row = document.querySelector('.te-history-item[data-id="' + id + '"]');
+            if (row) {
+                row.classList.remove('unread');
+                var dot = row.querySelector('.te-unread-dot'); if (dot) dot.remove();
+                btn.remove();
+            }
+        }
+    });
+
+    // Filter pills
+    document.getElementById('historyFilters').addEventListener('click', function (e) {
+        var pill = e.target.closest('.te-notif-filter');
+        if (!pill) return;
+        document.querySelectorAll('.te-notif-filter').forEach(function (p) { p.classList.remove('active'); });
+        pill.classList.add('active');
+        currentFilter = pill.dataset.type;
+        load(1);
+    });
+
+    // Mark all read
+    document.getElementById('btnMarkAllRead').addEventListener('click', function () {
+        postJson('/Admin/Notifications/AdminMarkAllRead')
+            .then(function () {
+                document.querySelectorAll('.te-history-item.unread').forEach(function (r) {
+                    r.classList.remove('unread');
+                    var dot = r.querySelector('.te-unread-dot'); if (dot) dot.remove();
+                    var readBtn = r.querySelector('[data-action="read"]'); if (readBtn) readBtn.remove();
+                });
+                var badge = document.getElementById('historyUnreadBadge');
+                if (badge) badge.classList.add('d-none');
+                // Also update bell badge
+                var bellBadge = document.getElementById('notifBadge');
+                if (bellBadge) { bellBadge.textContent = '0'; bellBadge.classList.add('d-none'); }
+            });
+    });
+
+    // Clear read
+    document.getElementById('btnClearRead').addEventListener('click', function () {
+        if (!confirm('Delete all read notifications from your inbox?')) return;
+        postJson('/Admin/Notifications/AdminClearAll').then(function () { load(1); });
+    });
+
+    // Initial load
+    load(1);
+})();
+</script>
+}

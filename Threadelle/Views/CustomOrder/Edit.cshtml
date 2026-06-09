@@ -1,0 +1,56 @@
+@model CustomOrder
+@using Threadelle.Helpers
+@{
+    ViewData["Title"] = "Update Your Request";
+}
+
+<section class="te-section te-section-light">
+    <div class="container" style="max-width:720px;">
+
+        <!-- Back -->
+        <div class="mb-3">
+            <a asp-controller="Profile" asp-action="CustomOrders" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                <i class="fas fa-arrow-left me-1"></i> My Requests
+            </a>
+        </div>
+
+        <div class="te-form-card p-4 mb-4" style="border-left:3px solid #f59e0b;">
+            <h5 style="color:#92400e;font-size:.9rem;margin-bottom:.35rem;">
+                <i class="fas fa-rotate-left me-2"></i>Changes Requested by Leen
+            </h5>
+            <p style="color:#78350f;font-size:.85rem;margin:0;line-height:1.65;">@Model.AdminNotes</p>
+        </div>
+
+        <div class="te-form-card p-4">
+            <h2 style="font-family:var(--font-heading);color:var(--te-deep-rose);font-size:1.45rem;margin-bottom:1.5rem;">
+                Update Your Request
+            </h2>
+            <p style="color:var(--te-text-muted);margin-bottom:1.5rem;font-size:.875rem;">
+                Your original request: <strong>@Model.Title</strong> &mdash; @Model.CustomOrderNumber
+            </p>
+
+            <form asp-controller="CustomOrder" asp-action="Edit" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" style="color:var(--te-deep-rose);">
+                        Anything to add? <span class="text-muted fw-normal">(optional)</span>
+                    </label>
+                    <textarea name="additionalNote" class="form-control" rows="3"
+                              placeholder="Any extra info for Leen…"
+                              style="border-color:var(--te-border);border-radius:12px;resize:none;"></textarea>
+                </div>
+
+                <div class="d-flex gap-3 flex-wrap align-items-center">
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-2">
+                        <i class="fas fa-paper-plane me-2"></i>Resubmit Request
+                    </button>
+                    <a asp-controller="Profile" asp-action="CustomOrders" class="btn btn-outline-secondary rounded-pill px-4">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</section>

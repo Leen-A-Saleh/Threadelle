@@ -1,0 +1,87 @@
+@model List<Threadelle.Models.Testimonial>
+@{
+    ViewData["Title"] = "Testimonials";
+    var filter = ViewBag.Filter as string ?? "pending";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 style="font-family:var(--font-heading);color:var(--te-deep-rose);margin:0;">Testimonials</h2>
+        <p style="color:var(--te-text-muted);margin:0;">Review and approve customer testimonials</p>
+    </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="d-flex gap-2 mb-4">
+    <a href="?filter=pending" class="btn @(filter == "pending" ? "btn-primary" : "btn-outline-primary") btn-sm">Pending</a>
+    <a href="?filter=approved" class="btn @(filter == "approved" ? "btn-primary" : "btn-outline-primary") btn-sm">Approved</a>
+    <a href="?filter=all" class="btn @(filter == "all" ? "btn-primary" : "btn-outline-primary") btn-sm">All</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="te-empty-state">
+        <i class="fas fa-comment-dots te-empty-icon"></i>
+        <h3>No testimonials here</h3>
+        <p>@(filter == "pending" ? "No testimonials are waiting for approval." : "No testimonials found.")</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var t in Model)
+        {
+            <div class="col-lg-6">
+                <div class="te-admin-card h-100">
+                    <div class="te-admin-card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--te-dusty-rose),var(--te-rose-mauve));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;">
+                                    @(string.IsNullOrEmpty(t.User?.FullName) ? "?" : t.User.FullName.Substring(0,1).ToUpper())
+                                </span>
+                                <div>
+                                    <strong style="color:var(--te-deep-rose);font-size:.88rem;">@(t.User?.FullName ?? "Unknown")</strong>
+                                    <div style="font-size:.72rem;color:var(--te-text-muted);">@t.CreatedAt.ToString("dd MMM yyyy")</div>
+                                </div>
+                            </div>
+                            <span style="color:var(--te-gold);font-size:.85rem;">@(new string('★', t.Rating))</span>
+                        </div>
+                        <p style="color:var(--te-text-secondary);font-size:.875rem;line-height:1.7;margin-bottom:1rem;">"@t.Message"</p>
+                        @if (!string.IsNullOrEmpty(t.ImageUrl))
+                        {
+                            <div class="mb-3">
+                                <a href="@t.ImageUrl" target="_blank">
+                                    <img src="@t.ImageUrl" alt="Customer Photo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--te-border);" />
+                                </a>
+                            </div>
+                        }
+                        <div class="d-flex gap-2">
+                            @if (!t.IsApproved)
+                            {
+                                <form asp-area="Admin" asp-controller="Testimonials" asp-action="Approve" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@t.Id" />
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-check me-1"></i> Approve
+                                    </button>
+                                </form>
+                            }
+                            <form asp-area="Admin" asp-controller="Testimonials" asp-action="Reject" method="post" class="d-inline"
+                                  onsubmit="return confirm('Remove this testimonial?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@t.Id" />
+                                <button type="submit" class="btn btn-outline-primary btn-sm" style="color:#C0697B;border-color:#C0697B;">
+                                    <i class="fas fa-trash me-1"></i> Remove
+                                </button>
+                            </form>
+                            @if (t.IsApproved)
+                            {
+                                <span class="te-badge" style="background:rgba(100,160,100,.12);color:#3d6b3d;"><i class="fas fa-check me-1"></i>Approved</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

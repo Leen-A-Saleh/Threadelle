@@ -1,0 +1,128 @@
+@model ColorUpsertViewModel
+@{
+    var isEdit = Model.Id != 0;
+    ViewData["Title"] = isEdit ? "Edit Color" : "New Color";
+    var safeHex = !string.IsNullOrWhiteSpace(Model.HexCode) ? Model.HexCode : "#D8A7A7";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2>@(isEdit ? "Edit Color" : "New Color")</h2>
+        <p class="te-sub">@(isEdit ? "Update this color's name, hex value or availability." : "Add a new color to the ThreadElle palette.")</p>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" asp-action="Index">
+        <i class="fas fa-arrow-left"></i> Back to list
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <form asp-action="Upsert" method="post" class="te-form-card">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-3"
+                 role="alert" style="font-size:.85rem;"></div>
+
+            <!-- Live color preview -->
+            <div class="te-color-preview-wrap mb-4">
+                <div class="te-color-preview-circle" id="colorPreviewCircle"
+                     style="background:@safeHex;"></div>
+                <div>
+                    <div class="te-row-title" id="colorPreviewName">@(string.IsNullOrWhiteSpace(Model.Name) ? "Color name" : Model.Name)</div>
+                    <div class="te-hex-code mt-1" id="colorPreviewHex">@safeHex</div>
+                </div>
+            </div>
+
+            <!-- Name -->
+            <div class="mb-3">
+                <label asp-for="Name" class="te-form-label">
+                    Name <span style="color:#C0392B;">*</span>
+                </label>
+                <input asp-for="Name" id="colorNameInput" class="form-control"
+                       placeholder="e.g. Dusty Rose" autofocus />
+                <span asp-validation-for="Name" class="text-danger" style="font-size:.8rem;"></span>
+            </div>
+
+            <!-- Hex code + native picker -->
+            <div class="mb-4">
+                <label asp-for="HexCode" class="te-form-label">
+                    Hex Code <span style="color:#C0392B;">*</span>
+                </label>
+                <div class="d-flex gap-2 align-items-center">
+                    <!-- Native color picker — updates the text input -->
+                    <input type="color" id="nativePicker" value="@safeHex"
+                           class="te-native-color-picker" title="Pick a color" />
+                    <input asp-for="HexCode" id="hexInput" class="form-control"
+                           placeholder="#A86F6F" maxlength="7"
+                           style="font-family:monospace;" />
+                </div>
+                <span asp-validation-for="HexCode" class="text-danger d-block mt-1" style="font-size:.8rem;"></span>
+                <div class="te-row-sub mt-1">Must be a 6-digit hex value, e.g. <code>#A86F6F</code>.</div>
+            </div>
+
+            <!-- Status -->
+            <div class="mb-4">
+                <label class="te-switch">
+                    <input class="form-check-input" type="checkbox" asp-for="IsActive" />
+                    <span class="te-form-label mb-0">Active (available for product &amp; custom order selection)</span>
+                </label>
+            </div>
+
+            <div class="d-flex gap-2 pt-3 border-top">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-floppy-disk"></i>
+                    @(isEdit ? "Save changes" : "Create color")
+                </button>
+                <a class="btn btn-outline-primary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var circle   = document.getElementById('colorPreviewCircle');
+            var hexInput = document.getElementById('hexInput');
+            var picker   = document.getElementById('nativePicker');
+            var nameInp  = document.getElementById('colorNameInput');
+            var prevName = document.getElementById('colorPreviewName');
+            var prevHex  = document.getElementById('colorPreviewHex');
+
+            function isValidHex(v) { return /^#[0-9A-Fa-f]{6}$/.test(v); }
+
+            function applyHex(hex) {
+                if (!isValidHex(hex)) return;
+                var upper = hex.toUpperCase();
+                if (circle) circle.style.background = upper;
+                if (prevHex) prevHex.textContent = upper;
+                if (picker && picker.value !== hex.toLowerCase()) picker.value = hex.toLowerCase();
+            }
+
+            // Text input drives preview + native picker
+            if (hexInput) {
+                hexInput.addEventListener('input', function () {
+                    var v = this.value.trim();
+                    if (!v.startsWith('#') && v.length > 0) v = '#' + v;
+                    applyHex(v);
+                });
+            }
+
+            // Native picker drives text input + preview
+            if (picker) {
+                picker.addEventListener('input', function () {
+                    var hex = this.value.toUpperCase();
+                    if (hexInput) hexInput.value = hex;
+                    applyHex(hex);
+                });
+            }
+
+            // Name input drives preview label
+            if (nameInp) {
+                nameInp.addEventListener('input', function () {
+                    if (prevName) prevName.textContent = this.value || 'Color name';
+                });
+            }
+        })();
+    </script>
+}

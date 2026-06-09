@@ -1,0 +1,361 @@
+@model ProductUpsertViewModel
+@{
+    var isEdit = Model.Id != 0;
+    ViewData["Title"] = isEdit ? "Edit Product" : "New Product";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2>@(isEdit ? "Edit Product" : "New Product")</h2>
+        <p class="te-sub">@(isEdit ? "Update this handmade piece." : "Add a new handmade piece to the catalogue.")</p>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" asp-action="Index"><i class="fas fa-arrow-left"></i> Back to list</a>
+</div>
+
+<form asp-action="Upsert" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert" style="font-size:.85rem;"></div>
+
+    <div class="row g-3">
+        <!-- ═══ LEFT ═══ -->
+        <div class="col-lg-8">
+            <!-- Details -->
+            <div class="te-admin-card mb-3">
+                <div class="te-admin-card-head"><h5>Product Details</h5></div>
+                <div class="te-admin-card-body">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="te-form-label">Name <span style="color:#C0392B;">*</span></label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g. Rosette Crochet Bag" />
+                        <span asp-validation-for="Name" class="text-danger" style="font-size:.8rem;"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Slug" class="te-form-label">Slug <span class="te-row-sub">(auto-generated if empty)</span></label>
+                        <input asp-for="Slug" class="form-control" placeholder="rosette-crochet-bag" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="te-form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Describe this piece..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger" style="font-size:.8rem;"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="StoryTelling" class="te-form-label">Story</label>
+                        <textarea asp-for="StoryTelling" class="form-control" rows="2" placeholder="The story behind this piece..."></textarea>
+                        <span asp-validation-for="StoryTelling" class="text-danger" style="font-size:.8rem;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images -->
+            <div class="te-admin-card mb-3">
+                <div class="te-admin-card-head"><h5>Images</h5></div>
+                <div class="te-admin-card-body">
+                    @if (isEdit && Model.ExistingImages.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2 mb-3" id="existingImages">
+                            @for (int i = 0; i < Model.ExistingImages.Count; i++)
+                            {
+                                <div class="te-prod-img-tile @(Model.ExistingImages[i].IsPrimary ? "is-primary" : "")" data-image-id="@Model.ExistingImages[i].Id" style="height:auto; min-height:100px;">
+                                    <input type="hidden" asp-for="ExistingImages[i].Id" />
+                                    <input type="hidden" asp-for="ExistingImages[i].IsPrimary" />
+                                    <input type="hidden" asp-for="ExistingImages[i].ImageUrl" />
+                                    <img src="@Model.ExistingImages[i].ImageUrl" alt="" style="max-height:120px; object-fit:cover; width:100%; border-radius: 8px 8px 0 0;" />
+                                    <span class="te-prod-img-primary-badge">Primary</span>
+                                    <div class="p-1 d-flex flex-column gap-1" style="font-size: .75rem;">
+                                        <input asp-for="ExistingImages[i].AltText" class="form-control form-control-sm" placeholder="Alt text..." style="font-size:.75rem; padding:.2rem .4rem;" />
+                                        <input asp-for="ExistingImages[i].DisplayOrder" class="form-control form-control-sm" type="number" placeholder="Order" style="font-size:.75rem; padding:.2rem .4rem;" />
+                                    </div>
+                                    <div class="te-prod-img-actions" style="top:5px; bottom:auto;">
+                                        <button type="button" class="te-prod-img-btn js-set-primary" title="Set as primary"><i class="fas fa-star"></i></button>
+                                        <button type="button" class="te-prod-img-btn is-danger js-del-image" title="Remove"><i class="fas fa-xmark"></i></button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <input type="file" name="NewImages" class="form-control" multiple accept="image/*" />
+                    <div class="te-row-sub mt-1">Select one or more images. The first image becomes the primary thumbnail if none exists.</div>
+                </div>
+            </div>
+
+            <!-- Colors -->
+            <div class="te-admin-card mb-3">
+                <div class="te-admin-card-head">
+                    <h5>Colors <span class="te-row-sub">(optional)</span></h5>
+                </div>
+                <div class="te-admin-card-body">
+                    @if (Model.ColorRows.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-3">
+                            @for (int i = 0; i < Model.ColorRows.Count; i++)
+                            {
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="hidden" asp-for="ColorRows[i].ColorId" />
+                                    <input type="hidden" asp-for="ColorRows[i].ColorName" />
+                                    <input type="hidden" asp-for="ColorRows[i].HexCode" />
+                                    <label class="te-color-chip mb-0">
+                                        <input type="checkbox" asp-for="ColorRows[i].IsSelected" class="js-color-check" />
+                                        <span class="te-color-chip-dot" style="background:@(Model.ColorRows[i].HexCode ?? "#E0E0E0");"></span>
+                                        <span>@Model.ColorRows[i].ColorName</span>
+                                    </label>
+                                    <input type="number" asp-for="ColorRows[i].Quantity" class="form-control form-control-sm js-color-qty" style="width: 70px;" min="0" placeholder="Qty" />
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="te-row-sub">No colors defined yet. Add some under <a asp-controller="Colors" asp-action="Index">Colors</a>.</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Materials -->
+            <div class="te-admin-card mb-3">
+                <div class="te-admin-card-head">
+                    <h5>Materials <span class="te-row-sub">(drive the computed price)</span></h5>
+                </div>
+                <div class="te-admin-card-body">
+                    @if (Model.MaterialOptions.Any())
+                    {
+                        <table class="table te-admin-table mb-0">
+                            <thead>
+                                <tr><th style="padding:.5rem 1rem;">Material</th><th>Unit</th><th class="text-end">Price/Unit</th><th class="text-end" style="width:140px;">Qty used</th></tr>
+                            </thead>
+                            <tbody>
+                                @{ var matList = Model.MaterialOptions.ToList(); }
+                                @for (int i = 0; i < matList.Count; i++)
+                                {
+                                    var m = matList[i];
+                                    var existing = Model.MaterialRows.FirstOrDefault(r => r.MaterialId == m.Id);
+                                    var qty = existing?.QuantityUsed ?? 0m;
+                                    <tr>
+                                        <td style="padding:.5rem 1rem;">
+                                            <input type="hidden" name="MaterialRows[@i].MaterialId" value="@m.Id" />
+                                            <span class="te-row-title">@m.Name</span>
+                                        </td>
+                                        <td><span class="te-row-sub">@m.Unit</span></td>
+                                        <td class="text-end"><span class="te-row-sub">@m.PricePerUnit.ToString("0.000") JOD</span></td>
+                                        <td class="text-end">
+                                            <input type="number" step="0.01" min="0"
+                                                   name="MaterialRows[@i].QuantityUsed" value="@qty.ToString("0.##")"
+                                                   class="form-control form-control-sm js-mat-qty text-end"
+                                                   data-price="@m.PricePerUnit.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="te-row-sub">No materials defined yet. Add some under <a asp-controller="Materials" asp-action="Index">Materials</a>.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ RIGHT ═══ -->
+        <div class="col-lg-4">
+            <!-- Pricing & Stock -->
+            <div class="te-admin-card mb-3">
+                <div class="te-admin-card-head"><h5>Pricing &amp; Stock</h5></div>
+                <div class="te-admin-card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label asp-for="WorkHours" class="te-form-label">Work hours</label>
+                            <input asp-for="WorkHours" id="fWorkHours" type="number" step="0.25" min="0" class="form-control" />
+                            <span asp-validation-for="WorkHours" class="text-danger" style="font-size:.78rem;"></span>
+                        </div>
+                        <div class="col-6">
+                            <label asp-for="HourRate" class="te-form-label">Hour rate (JOD)</label>
+                            <input asp-for="HourRate" id="fHourRate" type="number" step="0.01" min="0" class="form-control" />
+                            <span asp-validation-for="HourRate" class="text-danger" style="font-size:.78rem;"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Quantity" class="te-form-label">Quantity</label>
+                            <input asp-for="Quantity" id="fQuantity" type="number" min="0" class="form-control" />
+                            <span asp-validation-for="Quantity" class="text-danger" style="font-size:.78rem;"></span>
+                        </div>
+                    </div>
+                    <div class="te-price-box mt-3">
+                        <div class="d-flex justify-content-between"><span>Labour</span><span id="calcLabour">0.00</span></div>
+                        <div class="d-flex justify-content-between"><span>Materials</span><span id="calcMaterials">0.00</span></div>
+                        <div class="d-flex justify-content-between te-price-box-total mt-1 pt-1"><span>Price</span><span><strong id="calcTotal">0.00</strong> JOD</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category & Settings -->
+            <div class="te-admin-card mb-3">
+                <div class="te-admin-card-head"><h5>Category &amp; Settings</h5></div>
+                <div class="te-admin-card-body">
+                    <div class="mb-3">
+                        <label asp-for="CategoryId" class="te-form-label">Category <span style="color:#C0392B;">*</span></label>
+                        <select asp-for="CategoryId" class="form-select">
+                            <option value="">— Select category —</option>
+                            @foreach (var opt in Model.CategoryOptions)
+                            {
+                                <option value="@opt.Value">@opt.Text</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger" style="font-size:.8rem;"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Label" class="te-form-label">Product Label</label>
+                        <select asp-for="Label" class="form-select">
+                            <option value="0">None</option>
+                            <option value="1">New</option>
+                            <option value="2">Bestseller</option>
+                            <option value="3">Limited</option>
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label class="te-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="IsOnePiece" id="fIsOnePiece" />
+                            <span class="mb-0" style="font-size:.85rem;">One Piece <span class="te-row-sub">(unique, qty = 1)</span></span>
+                        </label>
+                        <label class="te-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="HasColorOptions" />
+                            <span class="mb-0" style="font-size:.85rem;">Has color options</span>
+                        </label>
+                        <label class="te-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="IsFeatured" />
+                            <span class="mb-0" style="font-size:.85rem;">Featured on homepage</span>
+                        </label>
+                        <label class="te-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="IsActive" />
+                            <span class="mb-0" style="font-size:.85rem;">Active (visible in store)</span>
+                        </label>
+                        
+                        <hr class="my-1" />
+                        
+                        <label class="te-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="ShowInGallery" />
+                            <span class="mb-0" style="font-size:.85rem;">Show in Gallery (Public Portfolio)</span>
+                        </label>
+                        <label class="te-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="IsGalleryFeatured" />
+                            <span class="mb-0" style="font-size:.85rem;">Featured in Gallery Showcase</span>
+                        </label>
+                        <div class="mt-1 d-flex align-items-center gap-2">
+                            <label asp-for="GalleryDisplayOrder" class="mb-0" style="font-size:.85rem; width: 120px;">Gallery Order:</label>
+                            <input asp-for="GalleryDisplayOrder" class="form-control form-control-sm" type="number" style="width: 80px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-floppy-disk"></i> @(isEdit ? "Save changes" : "Create product")</button>
+                <a class="btn btn-outline-primary text-center" asp-action="Index">Cancel</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            // ── Live price calculation ──────────────────────────────────────
+            var wh = document.getElementById('fWorkHours');
+            var hr = document.getElementById('fHourRate');
+            function num(el) { var v = parseFloat(el && el.value); return isNaN(v) ? 0 : v; }
+            function recalc() {
+                var labour = num(wh) * num(hr);
+                var materials = 0;
+                document.querySelectorAll('.js-mat-qty').forEach(function (inp) {
+                    materials += (parseFloat(inp.value) || 0) * (parseFloat(inp.dataset.price) || 0);
+                });
+                document.getElementById('calcLabour').textContent = labour.toFixed(2);
+                document.getElementById('calcMaterials').textContent = materials.toFixed(2);
+                document.getElementById('calcTotal').textContent = (labour + materials).toFixed(2);
+            }
+            [wh, hr].forEach(function (el) { if (el) el.addEventListener('input', recalc); });
+            document.querySelectorAll('.js-mat-qty').forEach(function (el) { el.addEventListener('input', recalc); });
+            recalc();
+
+            // ── Color Stock Sync ──────────────────────────────────────────────
+            var hasColors = document.getElementById('HasColorOptions');
+            var qty = document.getElementById('fQuantity');
+            
+            function syncColorStock() {
+                if (hasColors && hasColors.checked) {
+                    var totalQty = 0;
+                    document.querySelectorAll('.js-color-check').forEach(function(chk) {
+                        var qtyInput = chk.closest('div').querySelector('.js-color-qty');
+                        if (chk.checked) {
+                            qtyInput.removeAttribute('disabled');
+                            totalQty += parseInt(qtyInput.value) || 0;
+                        } else {
+                            qtyInput.setAttribute('disabled', 'disabled');
+                        }
+                    });
+                    if (qty) {
+                        qty.value = totalQty;
+                        qty.setAttribute('readonly', 'readonly');
+                    }
+                } else {
+                    document.querySelectorAll('.js-color-qty').forEach(function(inp) {
+                        inp.setAttribute('disabled', 'disabled');
+                    });
+                    if (qty && (!onePiece || !onePiece.checked)) {
+                        qty.removeAttribute('readonly');
+                    }
+                }
+            }
+
+            if (hasColors) hasColors.addEventListener('change', syncColorStock);
+            document.querySelectorAll('.js-color-check, .js-color-qty').forEach(function(el) {
+                el.addEventListener('input', syncColorStock);
+                el.addEventListener('change', syncColorStock);
+            });
+            syncColorStock();
+
+            // ── One-piece locks quantity to 1 ───────────────────────────────
+            var onePiece = document.getElementById('fIsOnePiece');
+            function syncOnePiece() {
+                if (onePiece && onePiece.checked) {
+                    if (qty) { qty.value = 1; qty.setAttribute('readonly', 'readonly'); qty.max = 1; }
+                } else {
+                    if (qty) { qty.removeAttribute('max'); }
+                    syncColorStock(); // Re-evaluate if it should be readonly based on colors
+                }
+            }
+            if (onePiece) onePiece.addEventListener('change', syncOnePiece);
+            syncOnePiece();
+
+            // ── Existing image AJAX management ──────────────────────────────
+            var token = (window.TE && window.TE.token) || '';
+            var productId = @Model.Id;
+
+            function postImg(action, imageId, onOk) {
+                fetch('/Admin/Products/' + action + '?imageId=' + imageId + '&productId=' + productId, {
+                    method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'RequestVerificationToken': token }
+                }).then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.ok) { onOk(); if (window.teToast) window.teToast(res.message, 'info'); }
+                    else if (window.teToast) window.teToast(res.message || 'Action failed', 'danger');
+                }).catch(function () { if (window.teToast) window.teToast('Something went wrong', 'danger'); });
+            }
+
+            document.querySelectorAll('.js-del-image').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var tile = btn.closest('.te-prod-img-tile');
+                    postImg('DeleteImage', tile.dataset.imageId, function () {
+                        tile.style.opacity = '0'; setTimeout(function () { tile.remove(); }, 200);
+                    });
+                });
+            });
+            document.querySelectorAll('.js-set-primary').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var tile = btn.closest('.te-prod-img-tile');
+                    postImg('SetPrimaryImage', tile.dataset.imageId, function () {
+                        document.querySelectorAll('.te-prod-img-tile').forEach(function (t) { t.classList.remove('is-primary'); });
+                        tile.classList.add('is-primary');
+                    });
+                });
+            });
+        })();
+    </script>
+}

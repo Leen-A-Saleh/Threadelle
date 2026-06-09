@@ -1,0 +1,466 @@
+<!-- ── AUTH MODAL ──────────────────────────────────────────── -->
+<div class="modal fade" id="authModal" tabindex="-1"
+     role="dialog" aria-modal="true"
+     aria-labelledby="authModalLabel" aria-hidden="true"
+     data-bs-backdrop="true" data-bs-keyboard="true">
+    <div class="modal-dialog modal-dialog-centered te-auth-modal-dialog">
+        <div class="modal-content te-auth-modal-content">
+
+            <!-- Close -->
+            <button type="button" class="te-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                <i class="fas fa-xmark"></i>
+            </button>
+
+            <!-- 3-D Flip scene -->
+            <div class="te-flip-scene te-modal-flip-scene" id="authFlipScene">
+                <div class="te-flip-card" id="authFlipCard">
+
+                    <!-- ══ FRONT · SIGN IN ══════════════════════════════════ -->
+                    <div class="te-flip-face te-flip-front">
+                        <!-- Luxury background decoration shapes -->
+                        <div class="te-card-decor te-decor-top-left">
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="20" cy="20" r="15" fill="var(--te-blush)" opacity="0.3"/>
+                                <path d="M40 10 L42 16 L48 18 L42 20 L40 26 L38 20 L32 18 L38 16 Z" fill="var(--te-gold)"/>
+                            </svg>
+                        </div>
+                        <div class="te-card-decor te-decor-bottom-right">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="25" fill="var(--te-light-blush)" opacity="0.4"/>
+                                <path d="M20 45 C25 40, 35 40, 40 45 C45 50, 45 60, 40 65 C35 70, 25 70, 20 65 C15 60, 15 50, 20 45 Z" fill="none" stroke="var(--te-blush)" stroke-width="1.2" stroke-dasharray="3 3"/>
+                                <path d="M15 25 L16.5 29 L21 30.5 L16.5 32 L15 36 L13.5 32 L9 30.5 L13.5 29 Z" fill="var(--te-gold)"/>
+                            </svg>
+                        </div>
+
+                        <div class="te-flip-header">
+                            <div class="te-flip-logo mb-2 animate-fade-up">
+                                <svg width="38" height="38" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 6C22 6 15 12 15 17C15 22.5 19.5 25 22 25C24.5 25 29 22.5 29 17C29 12 22 6 22 6Z" fill="url(#logoGrad1)" stroke="var(--te-rose-mauve)" stroke-width="1.5"/>
+                                    <path d="M22 13C22 13 18 17 18 20C18 23 20.5 24 22 24C23.5 24 26 23 26 20C26 17 22 13 22 13Z" fill="#fff" opacity="0.6"/>
+                                    <circle cx="22" cy="17" r="1.5" fill="var(--te-gold)"/>
+                                    <defs>
+                                        <linearGradient id="logoGrad1" x1="15" y1="6" x2="29" y2="25" gradientUnits="userSpaceOnUse">
+                                            <stop offset="0%" stop-color="#B77679" />
+                                            <stop offset="100%" stop-color="#8B7355" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <h2 class="te-flip-title animate-fade-up delay-1">Welcome Back</h2>
+                            <p class="te-flip-subtitle animate-fade-up delay-2">Handmade treasures crafted with love.</p>
+                        </div>
+                        <div class="te-flip-body">
+                            <div class="te-modal-notice" style="display:none; margin-bottom:1rem;"></div>
+                            <div id="loginErrors"></div>
+
+                            <form id="modalLoginForm" novalidate>
+                                <input type="hidden" id="loginReturnUrl" name="returnUrl" value="" />
+
+                                <div class="form-floating mb-2">
+                                    <input type="email" id="loginEmail" name="email"
+                                           class="form-control te-auth-input"
+                                           placeholder="name@example.com"
+                                           autocomplete="username" required />
+                                    <label for="loginEmail">Email address</label>
+                                </div>
+
+                                <div class="mb-2" style="position:relative;">
+                                    <div class="form-floating">
+                                        <input type="password" id="loginPassword" name="password"
+                                               class="form-control te-auth-input"
+                                               placeholder="password"
+                                               autocomplete="current-password" required />
+                                        <label for="loginPassword">Password</label>
+                                    </div>
+                                    <button type="button" class="te-pw-toggle"
+                                            onclick="teModalTogglePw('loginPassword',this)"
+                                            aria-label="Show password">
+                                        <i class="far fa-eye"></i>
+                                    </button>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="loginRememberMe" name="rememberMe" />
+                                        <label class="form-check-label" for="loginRememberMe"
+                                               style="font-size:.83rem;color:var(--te-text-secondary);">
+                                            Remember me
+                                        </label>
+                                    </div>
+                                    <a href="/Identity/Account/ForgotPassword" class="te-auth-link-sm"
+                                       data-bs-dismiss="modal">Forgot password?</a>
+                                </div>
+
+                                <button id="loginSubmitBtn" type="submit" class="btn te-auth-btn w-100 mb-2">
+                                    <i class="fas fa-right-to-bracket me-2"></i>Sign In
+                                </button>
+                            </form>
+
+                            <div class="te-flip-divider">or</div>
+                            <div class="te-flip-footer-note">
+                                New to ThreadElle?
+                                <button type="button" class="te-flip-link" onclick="teAuthFlip(true)">
+                                    Create an Account
+                                </button>
+                            </div>
+                        </div>
+                    </div><!-- /front -->
+
+                    <!-- ══ BACK · SIGN UP ═══════════════════════════════════ -->
+                    <div class="te-flip-face te-flip-back">
+                        <!-- Luxury background decoration shapes -->
+                        <div class="te-card-decor te-decor-top-left">
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="20" cy="20" r="15" fill="var(--te-blush)" opacity="0.3"/>
+                                <path d="M40 10 L42 16 L48 18 L42 20 L40 26 L38 20 L32 18 L38 16 Z" fill="var(--te-gold)"/>
+                            </svg>
+                        </div>
+                        <div class="te-card-decor te-decor-bottom-right">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="25" fill="var(--te-light-blush)" opacity="0.4"/>
+                                <path d="M20 45 C25 40, 35 40, 40 45 C45 50, 45 60, 40 65 C35 70, 25 70, 20 65 C15 60, 15 50, 20 45 Z" fill="none" stroke="var(--te-blush)" stroke-width="1.2" stroke-dasharray="3 3"/>
+                                <path d="M15 25 L16.5 29 L21 30.5 L16.5 32 L15 36 L13.5 32 L9 30.5 L13.5 29 Z" fill="var(--te-gold)"/>
+                            </svg>
+                        </div>
+
+                        <div class="te-flip-header">
+                            <div class="te-flip-logo mb-2 animate-fade-up">
+                                <svg width="38" height="38" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 6C22 6 15 12 15 17C15 22.5 19.5 25 22 25C24.5 25 29 22.5 29 17C29 12 22 6 22 6Z" fill="url(#logoGrad2)" stroke="var(--te-rose-mauve)" stroke-width="1.5"/>
+                                    <path d="M22 13C22 13 18 17 18 20C18 23 20.5 24 22 24C23.5 24 26 23 26 20C26 17 22 13 22 13Z" fill="#fff" opacity="0.6"/>
+                                    <circle cx="22" cy="17" r="1.5" fill="var(--te-gold)"/>
+                                    <defs>
+                                        <linearGradient id="logoGrad2" x1="15" y1="6" x2="29" y2="25" gradientUnits="userSpaceOnUse">
+                                            <stop offset="0%" stop-color="#B77679" />
+                                            <stop offset="100%" stop-color="#8B7355" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <h2 class="te-flip-title animate-fade-up delay-1">Join Threadelle</h2>
+                            <p class="te-flip-subtitle animate-fade-up delay-2">Handmade treasures crafted with love.</p>
+                        </div>
+                        <div class="te-flip-body">
+                            <div class="te-modal-notice" style="display:none; margin-bottom:1rem;"></div>
+                            <div id="registerErrors"></div>
+
+                            <form id="modalRegisterForm" novalidate>
+                                <input type="hidden" id="registerReturnUrl" name="returnUrl" value="" />
+
+                                <div class="form-floating mb-2">
+                                    <input type="text" id="regFullName" name="fullName"
+                                           class="form-control te-auth-input"
+                                           placeholder="Your full name"
+                                           autocomplete="name" required />
+                                    <label for="regFullName">Full Name</label>
+                                </div>
+
+                                <div class="form-floating mb-2">
+                                    <input type="email" id="regEmail" name="email"
+                                           class="form-control te-auth-input"
+                                           placeholder="name@example.com"
+                                           autocomplete="username" required />
+                                    <label for="regEmail">Email Address</label>
+                                </div>
+
+                                <div class="te-auth-gender-group mb-2">
+                                    <label class="te-gender-label">I am</label>
+                                    <div class="d-flex gap-4">
+                                        <label class="te-custom-radio">
+                                            <input type="radio" name="gender" value="1" checked />
+                                            <span class="te-radio-box"></span>
+                                            <span class="te-radio-text">Female</span>
+                                        </label>
+                                        <label class="te-custom-radio">
+                                            <input type="radio" name="gender" value="0" />
+                                            <span class="te-radio-box"></span>
+                                            <span class="te-radio-text">Male</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6" style="position:relative;">
+                                        <div class="form-floating">
+                                            <input type="password" id="regPassword" name="password"
+                                                   class="form-control te-auth-input"
+                                                   placeholder="password"
+                                                   autocomplete="new-password" required />
+                                            <label for="regPassword">Password</label>
+                                        </div>
+                                        <button type="button" class="te-pw-toggle"
+                                                onclick="teModalTogglePw('regPassword',this)"
+                                                aria-label="Show password">
+                                            <i class="far fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="col-6" style="position:relative;">
+                                        <div class="form-floating">
+                                            <input type="password" id="regConfirm" name="confirmPassword"
+                                                   class="form-control te-auth-input"
+                                                   placeholder="confirm password"
+                                                   autocomplete="new-password" required />
+                                            <label for="regConfirm">Confirm Password</label>
+                                        </div>
+                                        <button type="button" class="te-pw-toggle"
+                                                onclick="teModalTogglePw('regConfirm',this)"
+                                                aria-label="Show password">
+                                            <i class="far fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button id="registerSubmitBtn" type="submit" class="btn te-auth-btn w-100 mb-2">
+                                    <i class="fas fa-user-plus me-2"></i>Create Account
+                                </button>
+                            </form>
+
+                            <div class="te-flip-divider">or</div>
+                            <div class="te-flip-footer-note">
+                                Already have an account?
+                                <button type="button" class="te-flip-link" onclick="teAuthFlip(false)">
+                                    Sign In
+                                </button>
+                            </div>
+                        </div>
+                    </div><!-- /back -->
+
+                </div><!-- /flip-card -->
+            </div><!-- /flip-scene -->
+
+        </div><!-- /modal-content -->
+    </div><!-- /modal-dialog -->
+</div><!-- /modal -->
+
+<script>
+(function () {
+    var modal    = document.getElementById('authModal');
+    var flipCard = document.getElementById('authFlipCard');
+    if (!modal || !flipCard) return;
+
+    /* ── Flip ──────────────────────────────────────────────── */
+    window.teAuthFlip = function (toBack) {
+        flipCard.classList.toggle('flipped', toBack);
+        teAuthSyncHeight();
+    };
+
+    /* ── Height sync (back face is absolutely positioned) ──── */
+    function teAuthSyncHeight() {
+        var front = flipCard.querySelector('.te-flip-front');
+        var back  = flipCard.querySelector('.te-flip-back');
+        if (!front || !back) return;
+
+        var isFlipped = flipCard.classList.contains('flipped');
+        var targetHeight = 0;
+
+        if (isFlipped) {
+            // Temporarily lay back face in normal flow to measure it
+            back.style.transform = 'rotateY(0deg)';
+            back.style.position  = 'relative';
+            targetHeight = back.scrollHeight;
+            back.style.position  = '';
+            back.style.transform = '';
+        } else {
+            targetHeight = front.scrollHeight;
+        }
+
+        flipCard.style.height = targetHeight + 'px';
+    }
+
+    var activeTrigger = null;
+
+    modal.addEventListener('shown.bs.modal', function () {
+        teAuthSyncHeight();
+        var isFlipped = flipCard.classList.contains('flipped');
+        if (isFlipped) {
+            document.getElementById('regFullName')?.focus();
+        } else {
+            document.getElementById('loginEmail')?.focus();
+        }
+    });
+    window.addEventListener('resize', teAuthSyncHeight);
+
+    // Only clicking the backdrop closes the modal
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            var bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) bsModal.hide();
+        }
+    });
+
+    // Fallback ESC key listener for maximum reliability
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            var bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal && modal.classList.contains('show')) {
+                bsModal.hide();
+            }
+        }
+    });
+
+    /* ── Open helper called by Login/Register pages ─────────── */
+    window.teOpenAuthModal = function (side, returnUrl, message) {
+        activeTrigger = document.activeElement;
+        document.getElementById('loginReturnUrl').value    = returnUrl || '';
+        document.getElementById('registerReturnUrl').value = returnUrl || '';
+        clearErrors();
+
+        // Populate custom notice message
+        var noticeDivs = modal.querySelectorAll('.te-modal-notice');
+        noticeDivs.forEach(function (div) {
+            if (message) {
+                div.innerHTML = '<div class="te-auth-info-item"><i class="fas fa-circle-info me-2"></i>' + message + '</div>';
+                div.style.display = 'block';
+            } else {
+                div.innerHTML = '';
+                div.style.display = 'none';
+            }
+        });
+
+        // Reset flip first so the modal opens in a defined state
+        flipCard.classList.remove('flipped');
+
+        var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
+        bsModal.show();
+
+        // Flip AFTER show animation starts (avoids a jumpy first frame)
+        if (side === 'register') {
+            modal.addEventListener('shown.bs.modal', function onShown() {
+                modal.removeEventListener('shown.bs.modal', onShown);
+                teAuthFlip(true);
+            });
+        }
+    };
+
+    /* Reset to Sign-In side every time the modal is closed */
+    modal.addEventListener('hidden.bs.modal', function () {
+        flipCard.classList.remove('flipped');
+        clearErrors();
+        
+        // Return focus to opening trigger
+        if (activeTrigger) {
+            activeTrigger.focus();
+            activeTrigger = null;
+        }
+
+        // Hide notifications
+        var noticeDivs = modal.querySelectorAll('.te-modal-notice');
+        noticeDivs.forEach(function (div) {
+            div.innerHTML = '';
+            div.style.display = 'none';
+        });
+    });
+
+    /* ── Password reveal ─────────────────────────────────────── */
+    window.teModalTogglePw = function (id, btn) {
+        var inp = document.getElementById(id);
+        var ic  = btn.querySelector('i');
+        if (inp.type === 'password') { inp.type = 'text';     ic.className = 'far fa-eye-slash'; }
+        else                         { inp.type = 'password'; ic.className = 'far fa-eye'; }
+    };
+
+    /* ── Error display ───────────────────────────────────────── */
+    function clearErrors() {
+        document.getElementById('loginErrors').innerHTML    = '';
+        document.getElementById('registerErrors').innerHTML = '';
+    }
+
+    function showErrors(divId, errors) {
+        var html = '<div class="te-auth-errors">';
+        (errors || ['Something went wrong. Please try again.']).forEach(function (e) {
+            html += '<div class="te-auth-error-item"><i class="fas fa-circle-exclamation me-2"></i>'
+                  + e + '</div>';
+        });
+        html += '</div>';
+        document.getElementById(divId).innerHTML = html;
+    }
+
+    /* ── AJAX submit helper ──────────────────────────────────── */
+    async function teSubmit(formId, url, errorDivId, btnId) {
+        var form    = document.getElementById(formId);
+        var btn     = document.getElementById(btnId);
+        var origHtml = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Please wait…';
+        document.getElementById(errorDivId).innerHTML = '';
+
+        var data = new FormData(form);
+        data.append('__RequestVerificationToken', window.TE.token);
+
+        try {
+            var resp = await fetch(url, { method: 'POST', body: data });
+            if (!resp.ok) throw new Error('Network error');
+            var json = await resp.json();
+
+            if (json.success) {
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>Success!';
+                
+                var rUrl = document.getElementById(formId === 'modalLoginForm' ? 'loginReturnUrl' : 'registerReturnUrl').value;
+                if (rUrl === '#stay') {
+                    window.TE.isAuthenticated = true;
+                    // Update Navbar UI
+                    fetch('/Account/login-partial').then(r => r.text()).then(html => {
+                        var rightNav = document.querySelector('.te-navbar-right');
+                        if (rightNav) {
+                            var btnLogin = rightNav.querySelector('.te-btn-login');
+                            if (btnLogin) {
+                                btnLogin.outerHTML = html;
+                            } else {
+                                // If already logged in somehow, just append/replace
+                                var dropdown = rightNav.querySelector('.te-account-dropdown');
+                                if (dropdown) {
+                                    // Replace the siblings
+                                    var notifToggle = document.getElementById('notifToggle');
+                                    var adminBtn = rightNav.querySelector('.te-btn-admin-nav');
+                                    if(notifToggle) notifToggle.remove();
+                                    if(adminBtn) adminBtn.remove();
+                                    dropdown.outerHTML = html;
+                                }
+                            }
+                        }
+                    });
+                    
+                    setTimeout(function () { 
+                        var bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) bsModal.hide();
+                        window.dispatchEvent(new CustomEvent('teAuthSuccess'));
+                    }, 350);
+                    return;
+                }
+
+                // Brief success state then redirect
+                setTimeout(function () { window.location.href = json.redirect || '/'; }, 350);
+                return;
+            }
+
+            showErrors(errorDivId, json.errors);
+        } catch (ex) {
+            showErrors(errorDivId, ['Connection error. Please try again.']);
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+
+    /* ── Wire up forms ───────────────────────────────────────── */
+    document.getElementById('modalLoginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        teSubmit('modalLoginForm', '/Account/ajax-login', 'loginErrors', 'loginSubmitBtn');
+    });
+
+    document.getElementById('modalRegisterForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        teSubmit('modalRegisterForm', '/Account/ajax-register', 'registerErrors', 'registerSubmitBtn');
+    });
+
+    /* ── Navbar Sign In button ───────────────────────────────── */
+    var navBtn = document.getElementById('navSignInBtn');
+    if (navBtn) {
+        navBtn.addEventListener('click', function () {
+            window.teOpenAuthModal('login');
+        });
+    }
+})();
+</script>

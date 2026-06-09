@@ -1,0 +1,297 @@
+@model Threadelle.ViewModels.Admin.RecycleBinIndexViewModel
+@{
+    ViewData["Title"] = "Recycle Bin";
+    var entityTypes = new[] { "Product", "Category", "Color", "Material", "Testimonial", "Review", "CustomOrder", "Coupon" };
+    string TypeIcon(string t) => t switch {
+        "Product" => "gem", "Category" => "layer-group", "Color" => "palette",
+        "Material" => "scroll", "Testimonial" => "comment-dots", "Review" => "star",
+        "CustomOrder" => "wand-magic-sparkles", "Coupon" => "ticket-alt", _ => "trash-can"
+    };
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2><i class="fas fa-trash-can me-2" style="color:var(--te-dusty-rose);"></i>Recycle Bin</h2>
+        <p class="te-sub">@Model.TotalCount deleted item@(Model.TotalCount == 1 ? "" : "s") awaiting review</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="te-admin-card mb-3">
+    <div class="te-admin-card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="te-admin-label">Search</label>
+                <input type="text" name="search" value="@Model.Search" class="te-admin-ctrl" placeholder="Name, code…" />
+            </div>
+            <div class="col-md-3">
+                <label class="te-admin-label">Type</label>
+                <select name="type" class="te-admin-ctrl">
+                    <option value="">All types</option>
+                    @foreach (var t in entityTypes)
+                    {
+                        if (Model.EntityTypeFilter == t)
+                        {
+                            <option value="@t" selected>@t</option>
+                        }
+                        else
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="te-admin-btn te-admin-btn-primary w-100"><i class="fas fa-filter"></i> Filter</button>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.EntityTypeFilter))
+            {
+                <div class="col-md-2">
+                    <a asp-action="Index" class="te-admin-btn te-admin-btn-outline w-100">Clear</a>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+@if (Model.Items.Any())
+{
+    <!-- Bulk Actions Bar -->
+    <div class="te-bulk-bar d-none mb-3" id="bulkBar">
+        <span class="te-bulk-count"><span id="bulkCount">0</span> selected</span>
+        <div class="d-flex gap-2">
+            <button type="button" class="te-admin-btn te-admin-btn-sm te-admin-btn-outline" id="btnBulkRestore">
+                <i class="fas fa-rotate-left"></i> Restore
+            </button>
+            <button type="button" class="te-admin-btn te-admin-btn-sm is-danger" id="btnBulkDelete">
+                <i class="fas fa-trash-can"></i> Delete Forever
+            </button>
+            <button type="button" class="te-admin-btn te-admin-btn-sm te-admin-btn-outline" id="btnBulkClear">Cancel</button>
+        </div>
+    </div>
+
+    <div class="te-admin-card">
+        <div class="table-responsive">
+            <table class="table te-admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:40px;padding:.7rem 1rem;">
+                            <input type="checkbox" class="form-check-input" id="checkAll" />
+                        </th>
+                        <th style="padding:.7rem 1rem;">Item</th>
+                        <th>Type</th>
+                        <th>Deleted</th>
+                        <th class="text-end" style="padding-right:1.1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr data-row data-key="@item.EntityType:@item.Id">
+                            <td style="padding:.7rem 1rem;">
+                                <input type="checkbox" class="form-check-input row-check" value="@item.EntityType:@item.Id" />
+                            </td>
+                            <td style="padding:.7rem 1rem;">
+                                <div class="te-row-title">@item.Name</div>
+                                @if (!string.IsNullOrEmpty(item.Detail))
+                                {
+                                    <div class="te-row-sub">@item.Detail</div>
+                                }
+                            </td>
+                            <td>
+                                <span class="te-badge te-badge-pending">
+                                    <i class="fas fa-@TypeIcon(item.EntityType.ToString()) me-1"></i>@item.EntityType
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.DeletedAt.HasValue)
+                                {
+                                    <div class="te-row-sub">@item.DeletedAt.Value.ToString("MMM d, yyyy")</div>
+                                    @if (!string.IsNullOrEmpty(item.DeletedBy))
+                                    {
+                                        <div class="te-row-sub" style="font-size:.75rem;">by @item.DeletedBy</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="te-row-sub">—</span>
+                                }
+                            </td>
+                            <td class="text-end" style="padding-right:1.1rem;">
+                                <span class="te-act">
+                                    <button type="button" class="te-act-btn te-restore-btn"
+                                            data-id="@item.Id" data-type="@item.EntityType" title="Restore">
+                                        <i class="fas fa-rotate-left"></i>
+                                    </button>
+                                    <button type="button" class="te-act-btn is-danger te-perma-delete-btn"
+                                            data-id="@item.Id" data-type="@item.EntityType"
+                                            data-name="@item.Name" title="Delete Forever">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="te-admin-card-body border-top d-flex justify-content-center gap-2">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a asp-action="Index" asp-route-page="@i"
+                       asp-route-search="@Model.Search" asp-route-type="@Model.EntityTypeFilter"
+                       class="btn btn-sm @(i == Model.CurrentPage ? "btn-primary" : "btn-outline-primary")">@i</a>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="te-admin-card">
+        <div class="te-admin-empty">
+            <i class="fas fa-trash-can"></i>
+            <span>The recycle bin is empty.</span>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+(function () {
+    var token = (window.TE && window.TE.token) || '';
+
+    // ── Row checkboxes + bulk bar ──────────────────────────────────────────
+    var checkAll = document.getElementById('checkAll');
+    var bulkBar  = document.getElementById('bulkBar');
+    var bulkCount = document.getElementById('bulkCount');
+
+    function getChecked() {
+        return Array.from(document.querySelectorAll('.row-check:checked')).map(c => c.value);
+    }
+    function updateBulkBar() {
+        var n = getChecked().length;
+        if (bulkBar) bulkBar.classList.toggle('d-none', n === 0);
+        if (bulkCount) bulkCount.textContent = n;
+    }
+    document.addEventListener('change', function (e) {
+        if (e.target.id === 'checkAll') {
+            document.querySelectorAll('.row-check').forEach(c => c.checked = e.target.checked);
+        }
+        updateBulkBar();
+    });
+    document.getElementById('btnBulkClear') && document.getElementById('btnBulkClear').addEventListener('click', function () {
+        document.querySelectorAll('.row-check, #checkAll').forEach(c => c.checked = false);
+        updateBulkBar();
+    });
+
+    // ── Single restore ─────────────────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.te-restore-btn');
+        if (!btn) return;
+        var id = btn.dataset.id, type = btn.dataset.type;
+        Swal.fire({
+            title: 'Restore this ' + type + '?', icon: 'question',
+            showCancelButton: true, confirmButtonText: 'Restore',
+            confirmButtonColor: '#B89090', cancelButtonColor: '#ccc'
+        }).then(function (res) {
+            if (!res.isConfirmed) return;
+            fetch('@Url.Action("Restore")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+                body: 'id=' + id + '&entityType=' + type
+            }).then(r => r.json()).then(function (res) {
+                if (res.ok) {
+                    window.teToast && window.teToast(res.message, 'success');
+                    var row = btn.closest('[data-row]');
+                    if (row) { row.style.opacity = '0'; setTimeout(() => row.remove(), 250); }
+                } else window.teToast && window.teToast(res.message, 'danger');
+            });
+        });
+    });
+
+    // ── Single permanent delete ────────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.te-perma-delete-btn');
+        if (!btn) return;
+        var id = btn.dataset.id, type = btn.dataset.type, name = btn.dataset.name;
+        Swal.fire({
+            title: 'Permanently delete ' + name + '?',
+            text: 'This CANNOT be undone.',
+            icon: 'warning',
+            showCancelButton: true, confirmButtonText: 'Delete Forever',
+            confirmButtonColor: '#C0392B', cancelButtonColor: '#B89090', reverseButtons: true
+        }).then(function (res) {
+            if (!res.isConfirmed) return;
+            fetch('@Url.Action("PermanentDelete")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+                body: 'id=' + id + '&entityType=' + type
+            }).then(r => r.json()).then(function (res) {
+                if (res.ok) {
+                    window.teToast && window.teToast(res.message, 'danger');
+                    var row = btn.closest('[data-row]');
+                    if (row) { row.style.opacity = '0'; setTimeout(() => row.remove(), 250); }
+                } else window.teToast && window.teToast(res.message, 'danger');
+            });
+        });
+    });
+
+    // ── Bulk restore ───────────────────────────────────────────────────────
+    document.getElementById('btnBulkRestore') && document.getElementById('btnBulkRestore').addEventListener('click', function () {
+        var items = getChecked();
+        if (!items.length) return;
+        Swal.fire({
+            title: 'Restore ' + items.length + ' item(s)?', icon: 'question',
+            showCancelButton: true, confirmButtonText: 'Restore All'
+        }).then(function (res) {
+            if (!res.isConfirmed) return;
+            fetch('@Url.Action("BulkRestore")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(items)
+            }).then(r => r.json()).then(function (res) {
+                window.teToast && window.teToast(res.message, 'success');
+                items.forEach(function (key) {
+                    var row = document.querySelector('[data-key="' + key + '"]');
+                    if (row) { row.style.opacity = '0'; setTimeout(() => row.remove(), 250); }
+                });
+                document.querySelectorAll('.row-check, #checkAll').forEach(c => c.checked = false);
+                updateBulkBar();
+            });
+        });
+    });
+
+    // ── Bulk permanent delete ──────────────────────────────────────────────
+    document.getElementById('btnBulkDelete') && document.getElementById('btnBulkDelete').addEventListener('click', function () {
+        var items = getChecked();
+        if (!items.length) return;
+        Swal.fire({
+            title: 'Permanently delete ' + items.length + ' item(s)?',
+            text: 'This CANNOT be undone.',
+            icon: 'warning',
+            showCancelButton: true, confirmButtonText: 'Delete Forever',
+            confirmButtonColor: '#C0392B', reverseButtons: true
+        }).then(function (res) {
+            if (!res.isConfirmed) return;
+            fetch('@Url.Action("BulkPermanentDelete")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(items)
+            }).then(r => r.json()).then(function (res) {
+                window.teToast && window.teToast(res.message, 'danger');
+                items.forEach(function (key) {
+                    var row = document.querySelector('[data-key="' + key + '"]');
+                    if (row) { row.style.opacity = '0'; setTimeout(() => row.remove(), 250); }
+                });
+                document.querySelectorAll('.row-check, #checkAll').forEach(c => c.checked = false);
+                updateBulkBar();
+            });
+        });
+    });
+})();
+</script>
+}

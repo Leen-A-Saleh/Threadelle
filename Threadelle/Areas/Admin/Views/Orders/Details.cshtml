@@ -1,0 +1,175 @@
+@model OrderDetailsViewModel
+@{
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2>Order @Model.OrderNumber</h2>
+        <p class="te-sub">Placed @Model.CreatedAt.ToString("MMM d, yyyy · h:mm tt")</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="te-badge te-badge-@Model.Status.Badge()">@Model.Status.Friendly()</span>
+        <a class="btn btn-outline-primary btn-sm" asp-action="Index"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- ═══ LEFT: Items + notes ═══ -->
+    <div class="col-lg-8">
+        <div class="te-admin-card mb-3">
+            <div class="te-admin-card-head"><h5><i class="fas fa-list me-2" style="color:var(--te-dusty-rose);"></i>Order Items</h5></div>
+            <div class="te-admin-card-body p-0">
+                <div class="table-responsive">
+                    <table class="table te-admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="padding:.7rem 1.1rem;">Product</th>
+                                <th>Color</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Unit</th>
+                                <th class="text-end" style="padding-right:1.1rem;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td style="padding:.7rem 1.1rem;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                            {
+                                                <img src="@item.ImageUrl" class="te-row-thumb" alt="" />
+                                            }
+                                            else
+                                            {
+                                                <span class="te-row-thumb-ph"><i class="fas fa-gem"></i></span>
+                                            }
+                                            <span class="te-row-title">@item.ProductName</span>
+                                        </div>
+                                    </td>
+                                    <td>@(item.ColorName ?? "—")</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">@item.UnitPrice.ToString("0.00")</td>
+                                    <td class="text-end" style="padding-right:1.1rem;"><strong>@item.LineTotal.ToString("0.00") JOD</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-end te-row-sub">Subtotal</td>
+                                <td class="text-end" style="padding-right:1.1rem;">@Model.SubTotal.ToString("0.00") JOD</td>
+                            </tr>
+                            @if (Model.DiscountAmount > 0)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-end" style="color:var(--te-dusty-rose);">Discount</td>
+                                    <td class="text-end" style="color:var(--te-dusty-rose);padding-right:1.1rem;">−@Model.DiscountAmount.ToString("0.00") JOD</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Total</strong></td>
+                                <td class="text-end" style="padding-right:1.1rem;"><strong style="color:var(--te-deep-rose);">@Model.TotalPrice.ToString("0.00") JOD</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.CustomerNote))
+        {
+            <div class="te-admin-card mb-3">
+                <div class="te-admin-card-head"><h5>Customer Note</h5></div>
+                <div class="te-admin-card-body">
+                    <p class="mb-0" style="font-style:italic;color:var(--te-text-secondary);">@Model.CustomerNote</p>
+                </div>
+            </div>
+        }
+
+        <!-- Admin internal note -->
+        <div class="te-admin-card">
+            <div class="te-admin-card-head"><h5><i class="fas fa-note-sticky me-2" style="color:var(--te-dusty-rose);"></i>Internal Note</h5></div>
+            <div class="te-admin-card-body">
+                <form method="post" asp-action="UpdateNote" asp-route-id="@Model.Id">
+                    @Html.AntiForgeryToken()
+                    <textarea name="adminNote" class="form-control mb-2" rows="3"
+                              placeholder="Private note for your team (not shown to the customer)...">@Model.AdminNote</textarea>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-floppy-disk"></i> Save note</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ RIGHT: customer + actions ═══ -->
+    <div class="col-lg-4">
+        <!-- Customer -->
+        <div class="te-admin-card mb-3">
+            <div class="te-admin-card-head"><h5>Customer</h5></div>
+            <div class="te-admin-card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="te-account-avatar-initial">@(string.IsNullOrEmpty(Model.CustomerName) ? "?" : Model.CustomerName.Substring(0,1).ToUpper())</span>
+                    <div>
+                        <div class="te-row-title">@Model.CustomerName</div>
+                        <div class="te-row-sub">@Model.CustomerEmail</div>
+                    </div>
+                </div>
+                <a class="btn btn-outline-primary btn-sm w-100" asp-controller="Users" asp-action="Details" asp-route-id="@Model.UserId">
+                    View customer
+                </a>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="te-admin-card mb-3">
+            <div class="te-admin-card-head"><h5>Update Status</h5></div>
+            <div class="te-admin-card-body">
+                <form method="post" asp-action="UpdateStatus" asp-route-id="@Model.Id">
+                    @Html.AntiForgeryToken()
+                    <select name="status" class="form-select mb-2">
+                        @foreach (var s in Enum.GetValues<OrderStatus>())
+                        {
+                            if (s == Model.Status)
+                            {
+                                <option value="@s" selected>@s.Friendly()</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s.Friendly()</option>
+                            }
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-primary w-100 btn-sm"><i class="fas fa-arrows-rotate"></i> Update status</button>
+                </form>
+                <div class="te-row-sub mt-2"><i class="fas fa-bell me-1"></i> The customer is notified on every status change.</div>
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="te-admin-card mb-3">
+            <div class="te-admin-card-head"><h5>Payment</h5></div>
+            <div class="te-admin-card-body">
+                <div class="d-flex justify-content-between mb-2" style="font-size:.85rem;">
+                    <span class="te-row-sub">Method</span><strong>@Model.PaymentMethod</strong>
+                </div>
+                <form method="post" asp-action="UpdatePaymentStatus" asp-route-id="@Model.Id">
+                    @Html.AntiForgeryToken()
+                    <select name="paymentStatus" class="form-select mb-2">
+                        @foreach (var ps in Enum.GetValues<OrderPaymentStatus>())
+                        {
+                            if (ps == Model.PaymentStatus)
+                            {
+                                <option value="@ps" selected>@ps</option>
+                            }
+                            else
+                            {
+                                <option value="@ps">@ps</option>
+                            }
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary w-100 btn-sm">Update payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

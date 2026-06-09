@@ -1,0 +1,231 @@
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var requestToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ThreadElle</title>
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "ThreadElle — handmade crochet, beadwork and personalised gifts, crafted with love for the women you adore.")" />
+    <meta name="request-verification-token" content="@requestToken" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/storefront.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Threadelle.style.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <!-- ANNOUNCEMENT BAR — fixed at top, slides away on scroll -->
+    <div class="te-announce-bar" id="announceBar">
+        <div class="container">
+            <i class="fas fa-heart te-heart me-1"></i>
+            Free shipping on orders over 50 JOD &nbsp;&bull;&nbsp; Every piece handmade with love
+            <i class="fas fa-heart te-heart ms-1"></i>
+        </div>
+    </div>
+
+    <!-- NAVBAR — fixed below announce bar, independent hide/show -->
+    <header id="siteHeader">
+        <nav class="navbar navbar-expand-lg te-navbar" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-name">ThreadElle</span>
+                    <span class="brand-tagline">Handmade for Her</span>
+                </a>
+
+                <button class="navbar-toggler border-0" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                        aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav mx-auto gap-1">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Collections" asp-action="Index">Collections</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="CustomOrder" asp-action="Create">Custom Orders</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Gallery" asp-action="Index">Gallery</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="About">About</a></li>
+                    </ul>
+
+                    <div class="te-navbar-right">
+
+                        <!-- Search Removed -->
+
+                        <!-- Wishlist -->
+                        <button type="button" class="te-icon-btn" id="wishlistToggle" aria-label="Wishlist"
+                                data-bs-toggle="offcanvas" data-bs-target="#wishlistCanvas">
+                            <i class="far fa-heart"></i>
+                            <span class="te-icon-badge d-none" id="wishlistBadge">0</span>
+                        </button>
+
+                        <!-- Cart -->
+                        <button type="button" class="te-icon-btn" id="cartToggle" aria-label="Shopping bag"
+                                data-bs-toggle="offcanvas" data-bs-target="#cartCanvas">
+                            <i class="fas fa-bag-shopping"></i>
+                            <span class="te-icon-badge d-none" id="cartBadge">0</span>
+                        </button>
+
+                        <partial name="_LoginPartial" />
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- FLASH TOASTS -->
+    <div class="te-toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="true">
+        @if (TempData["FlashMessage"] != null)
+        {
+            <div class="te-toast te-toast-@(TempData["FlashType"] ?? "success")" data-autoshow="true">
+                <i class="fas fa-heart"></i>
+                <span>@Html.Raw(TempData["FlashMessage"])</span>
+                <button class="te-toast-close" aria-label="Close">&times;</button>
+            </div>
+        }
+    </div>
+
+    <main role="main" class="main-wrapper">
+        @RenderBody()
+    </main>
+
+
+
+    <!-- ── WISHLIST OFFCANVAS ────────────────────────────────── -->
+    <div class="offcanvas offcanvas-end te-offcanvas" tabindex="-1" id="wishlistCanvas" aria-labelledby="wishlistCanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="wishlistCanvasLabel">
+                <i class="fas fa-heart me-2" style="color:var(--te-dusty-rose);"></i>Your Wishlist
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" id="wishlistCanvasBody">
+            <div class="te-skeleton-list">
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb"></div><div class="te-skeleton-content"><div class="te-skeleton-title"></div><div class="te-skeleton-text"></div></div></div>
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb"></div><div class="te-skeleton-content"><div class="te-skeleton-title"></div><div class="te-skeleton-text"></div></div></div>
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb"></div><div class="te-skeleton-content"><div class="te-skeleton-title"></div><div class="te-skeleton-text"></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CART OFFCANVAS ────────────────────────────────────── -->
+    <div class="offcanvas offcanvas-end te-offcanvas" tabindex="-1" id="cartCanvas" aria-labelledby="cartCanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="cartCanvasLabel">
+                <i class="fas fa-bag-shopping me-2" style="color:var(--te-dusty-rose);"></i>Your Bag
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" id="cartCanvasBody">
+            <div class="te-skeleton-list">
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb"></div><div class="te-skeleton-content"><div class="te-skeleton-title"></div><div class="te-skeleton-text"></div></div></div>
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb"></div><div class="te-skeleton-content"><div class="te-skeleton-title"></div><div class="te-skeleton-text"></div></div></div>
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb"></div><div class="te-skeleton-content"><div class="te-skeleton-title"></div><div class="te-skeleton-text"></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS OFFCANVAS ──────────────────────────── -->
+    <div class="offcanvas offcanvas-end te-offcanvas" tabindex="-1" id="notifCanvas" aria-labelledby="notifCanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="notifCanvasLabel">
+                <i class="far fa-bell me-2" style="color:var(--te-dusty-rose);"></i>Notifications
+            </h5>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="te-notif-readall" id="notifReadAll" style="font-size:.78rem;">Mark all read</button>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="offcanvas-body p-0" id="notifCanvasBody">
+            <div class="te-skeleton-list">
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb" style="border-radius:50%;width:36px;height:36px;"></div><div class="te-skeleton-content"><div class="te-skeleton-title" style="width:50%;"></div><div class="te-skeleton-text" style="width:80%;"></div></div></div>
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb" style="border-radius:50%;width:36px;height:36px;"></div><div class="te-skeleton-content"><div class="te-skeleton-title" style="width:40%;"></div><div class="te-skeleton-text" style="width:70%;"></div></div></div>
+                <div class="te-skeleton-item"><div class="te-skeleton-thumb" style="border-radius:50%;width:36px;height:36px;"></div><div class="te-skeleton-content"><div class="te-skeleton-title" style="width:60%;"></div><div class="te-skeleton-text" style="width:75%;"></div></div></div>
+            </div>
+        </div>
+        <div class="p-3 border-top">
+            <a href="/Profile/Notifications" class="btn btn-outline-primary w-100 btn-sm" data-bs-dismiss="offcanvas">View All Notifications</a>
+        </div>
+    </div>
+
+    <!-- ── BACK TO TOP ───────────────────────────────────────── -->
+    <button id="backToTop" class="te-back-to-top" aria-label="Back to top" title="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- ── FOOTER ────────────────────────────────────────────── -->
+    <footer class="te-footer">
+        <div class="container">
+            <div class="row g-4 pb-4">
+                <div class="col-lg-4 col-md-6">
+                    <span class="te-footer-brand">ThreadElle</span>
+                    <span class="te-footer-tagline">Handmade for Her</span>
+                    <p class="te-footer-desc mb-3">
+                        Every piece is crafted with love and care — unique, handmade treasures made to tell her story.
+                    </p>
+                    <div>
+                        <a href="#" class="te-social-btn" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="te-social-btn" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="te-social-btn" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+                        <a href="#" class="te-social-btn" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6">
+                    <h5>Explore</h5>
+                    <a asp-controller="Collections" asp-action="Index">Collections</a>
+                    <a asp-controller="CustomOrder" asp-action="Create">Custom Orders</a>
+                    <a asp-controller="Wishlist" asp-action="Index">Wishlist</a>
+                    <a asp-controller="Home" asp-action="About">Our Story</a>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6">
+                    <h5>Help</h5>
+                    <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                    <a asp-controller="Home" asp-action="About">Shipping &amp; Care</a>
+                    <a asp-controller="Home" asp-action="About">Returns</a>
+                    <a asp-controller="Home" asp-action="About">Contact</a>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h5>Get in Touch</h5>
+                    <p class="te-footer-contact mb-0">
+                        <i class="fas fa-envelope me-2"></i>hello@@threadelle.com<br>
+                        <i class="fas fa-clock me-2"></i>Mon – Sat: 9am – 6pm<br>
+                        <i class="fas fa-location-dot me-2"></i>Ships Worldwide
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="te-footer-bottom">
+            <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <span>&copy; 2026 ThreadElle. All rights reserved.</span>
+                <span>Made with <i class="fas fa-heart te-footer-heart"></i> for her</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.TE = {
+            token: document.querySelector('meta[name="request-verification-token"]').content,
+            isAuthenticated: @(User.Identity?.IsAuthenticated == true ? "true" : "false")
+        };
+    </script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @* Auth modal — must come after bootstrap.bundle so bootstrap.Modal is available *@
+    @if (!User.Identity!.IsAuthenticated)
+    {
+        <partial name="_AuthModal" />
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

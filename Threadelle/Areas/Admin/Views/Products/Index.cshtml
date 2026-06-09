@@ -1,0 +1,236 @@
+@model ProductIndexViewModel
+@{
+    ViewData["Title"] = "Products";
+}
+
+<div class="te-admin-pagehead">
+    <div>
+        <h2>Products</h2>
+        <p class="te-sub">@Model.TotalCount product@(Model.TotalCount == 1 ? "" : "s") in the catalogue</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Upsert"><i class="fas fa-plus"></i> New Product</a>
+</div>
+
+<!-- Filters -->
+<form method="get" class="te-admin-card mb-3">
+    <div class="te-admin-card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="te-admin-label">Search</label>
+                <input type="text" name="search" value="@Model.Search" class="te-admin-ctrl" placeholder="Product name..." />
+            </div>
+            <div class="col-md-3">
+                <label class="te-admin-label">Category</label>
+                <select name="categoryId" class="te-admin-ctrl">
+                    <option value="">All categories</option>
+                    @foreach (var opt in Model.CategoryOptions)
+                    {
+                        if (opt.Selected)
+                        {
+                            <option value="@opt.Value" selected>@opt.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@opt.Value">@opt.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="te-admin-label">Type</label>
+                <select name="type" class="te-admin-ctrl">
+                    @if (string.IsNullOrEmpty(Model.Type))
+                    {
+                        <option value="" selected>All types</option>
+                    }
+                    else
+                    {
+                        <option value="">All types</option>
+                    }
+                    @if (Model.Type == "onepiece")
+                    {
+                        <option value="onepiece" selected>One Piece</option>
+                    }
+                    else
+                    {
+                        <option value="onepiece">One Piece</option>
+                    }
+                    @if (Model.Type == "standard")
+                    {
+                        <option value="standard" selected>Standard</option>
+                    }
+                    else
+                    {
+                        <option value="standard">Standard</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filter</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="te-admin-card">
+    @if (Model.Items.Any())
+    {
+        <div class="table-responsive">
+            <table class="table te-admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.7rem 1.1rem;">Product</th>
+                        <th>Category</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-center">Stock</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th class="text-end" style="padding-right:1.1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Items)
+                    {
+                        <tr data-row>
+                            <td style="padding:.7rem 1.1rem;">
+                                <div class="d-flex align-items-center gap-2">
+                                    @if (!string.IsNullOrEmpty(p.PrimaryImageUrl))
+                                    {
+                                        <img src="@p.PrimaryImageUrl" class="te-row-thumb" alt="@p.Name" />
+                                    }
+                                    else
+                                    {
+                                        <span class="te-row-thumb-ph"><i class="fas fa-gem"></i></span>
+                                    }
+                                    <div>
+                                        <div class="te-row-title">@p.Name</div>
+                                        <div class="te-row-sub">/@p.Slug</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@(p.CategoryName ?? "—")</td>
+                            <td class="text-end"><strong style="color:var(--te-rose-mauve);">@p.Price.ToString("0.00") JOD</strong></td>
+                            <td class="text-center">
+                                @if (p.IsOnePiece)
+                                {
+                                    <span class="te-badge te-badge-progress">1 of 1</span>
+                                }
+                                else if (p.Quantity <= 0)
+                                {
+                                    <span class="te-badge te-badge-cancelled">Out</span>
+                                }
+                                else if (p.Quantity <= 5)
+                                {
+                                    <span class="te-badge te-badge-pending">@p.Quantity</span>
+                                }
+                                else
+                                {
+                                    <span class="te-badge te-badge-delivered">@p.Quantity</span>
+                                }
+                            </td>
+                            <td>
+                                @if (p.IsOnePiece)
+                                {
+                                    <span class="te-badge te-badge-inprogress">One Piece</span>
+                                }
+                                else
+                                {
+                                    <span class="te-badge te-badge-confirmed">Standard</span>
+                                }
+                                @if (p.Label != Threadelle.Models.ProductLabel.None)
+                                {
+                                    var labelCss = p.Label switch {
+                                        Threadelle.Models.ProductLabel.New => "te-badge-delivered",
+                                        Threadelle.Models.ProductLabel.Bestseller => "te-badge-pending",
+                                        Threadelle.Models.ProductLabel.Limited => "te-badge-cancelled",
+                                        _ => "te-badge-pending"
+                                    };
+                                    <span class="te-badge @labelCss ms-1">@p.Label</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="te-status @(p.IsActive ? "te-status-on" : "te-status-off") js-toggle-active"
+                                      style="cursor:pointer;" data-id="@p.Id" title="Toggle Active">
+                                    @(p.IsActive ? "Active" : "Hidden")
+                                </span>
+                                <span class="te-badge @(p.IsFeatured ? "te-badge-pending" : "te-badge-outline") ms-1 js-toggle-featured"
+                                      style="cursor:pointer;" data-id="@p.Id" title="Toggle Featured">
+                                    <i class="fas fa-star"></i>
+                                </span>
+                            </td>
+                            <td class="text-end" style="padding-right:1.1rem;">
+                                <span class="te-act">
+                                    <a class="te-act-btn" asp-action="Upsert" asp-route-id="@p.Id" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <button type="button" class="te-act-btn is-danger te-delete-btn"
+                                            data-url="@Url.Action("Delete", new { id = p.Id })" data-name="@p.Name" title="Delete">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="te-admin-card-body border-top d-flex justify-content-center gap-2">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search"
+                       asp-route-categoryId="@Model.CategoryId" asp-route-type="@Model.Type"
+                       class="btn btn-sm @(i == Model.CurrentPage ? "btn-primary" : "btn-outline-primary")">@i</a>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="te-admin-empty">
+            <i class="fas fa-gem"></i>
+            <span>No products found. Create your first handmade piece.</span>
+            <a class="btn btn-primary btn-sm mt-2" asp-action="Upsert"><i class="fas fa-plus"></i> New Product</a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var token = (window.TE && window.TE.token) || '';
+
+    function postToggle(url, id, onOk) {
+        fetch(url + '?id=' + id, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token, 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(r => r.json()).then(function (res) {
+            if (res.ok) onOk(res);
+            else window.teToast && window.teToast('Action failed', 'danger');
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.js-toggle-active');
+        if (btn) {
+            var id = btn.dataset.id;
+            postToggle('@Url.Action("ToggleActive")', id, function (res) {
+                btn.className = btn.className.replace(/te-status-on|te-status-off/g, '').trim();
+                btn.classList.add(res.active ? 'te-status-on' : 'te-status-off');
+                btn.textContent = res.active ? 'Active' : 'Hidden';
+                window.teToast && window.teToast(res.active ? 'Product activated.' : 'Product hidden.', 'info');
+            });
+        }
+
+        var fbtn = e.target.closest('.js-toggle-featured');
+        if (fbtn) {
+            postToggle('@Url.Action("ToggleFeatured")', fbtn.dataset.id, function (res) {
+                fbtn.classList.toggle('te-badge-pending', res.featured);
+                fbtn.classList.toggle('te-badge-outline', !res.featured);
+                window.teToast && window.teToast(res.featured ? 'Marked as featured.' : 'Removed from featured.', 'info');
+            });
+        }
+    });
+})();
+</script>
+}

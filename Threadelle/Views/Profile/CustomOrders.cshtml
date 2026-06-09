@@ -1,0 +1,213 @@
+@model List<CustomOrder>
+@using Threadelle.Helpers
+@{
+    ViewData["Title"] = "Custom Requests";
+}
+
+<section class="te-section te-section-light te-profile-page">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3"><partial name="_ProfileSidebar" /></div>
+            <div class="col-lg-9">
+
+                <div class="te-profile-header-card">
+                    <div>
+                        <h1 class="te-profile-header-title">
+                            <span class="te-profile-header-card-icon"><i class="fas fa-palette"></i></span>
+                            Custom Requests
+                        </h1>
+                        <p class="te-profile-header-subtitle">Track the journey of your bespoke handmade treasures.</p>
+                    </div>
+                    <a asp-controller="CustomOrder" asp-action="Create"
+                       class="btn btn-primary rounded-pill px-4 py-2 align-self-center">
+                        <i class="fas fa-plus me-1"></i> New Request
+                    </a>
+                </div>
+
+                @if (Model.Any())
+                {
+                    @foreach (var order in Model)
+                    {
+                        var accentColor = order.Status.AccentColor();
+                        <div class="te-co-card mb-4" style="--accent:@accentColor;">
+                            <div class="te-co-card-top">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="te-badge te-badge-@order.Status.Badge()">@order.Status.Friendly()</span>
+                                    <span class="te-co-number">@order.CustomOrderNumber</span>
+                                </div>
+                                <span class="te-co-date"><i class="far fa-calendar-alt me-1"></i>@order.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                            </div>
+
+                            <div class="te-co-card-body">
+                                <div class="te-co-title-row">
+                                    <div>
+                                        <h4 class="te-co-title">@order.Title</h4>
+                                        <div class="te-co-meta">
+                                            @if (order.Category != null)
+                                            {
+                                                <span>@order.Category.Name</span>
+                                            }
+                                            @if (order.Deadline.HasValue)
+                                            {
+                                                <span>Due @order.Deadline.Value.ToString("MMM dd, yyyy")</span>
+                                            }
+                                            @if (order.Budget.HasValue)
+                                            {
+                                                <span>Budget @order.Budget.Value.ToString("0.00") JOD</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (order.Images.Any())
+                                    {
+                                        <img src="@order.Images.First().ImageUrl" class="te-co-thumb" alt="" />
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(order.AdminNotes) && order.Status != CustomOrderStatus.Rejected)
+                                {
+                                    <div class="te-co-admin-note">
+                                        <div class="te-co-admin-note-icon"><i class="fas fa-comment-dots"></i></div>
+                                        <div>
+                                            <div class="te-co-admin-note-label">Message from Leen</div>
+                                            <div class="te-co-admin-note-text">@order.AdminNotes</div>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (order.Status == CustomOrderStatus.AwaitingPayment && order.EstimatedPrice.HasValue)
+                                {
+                                    <div class="te-co-quote-card">
+                                        <div class="te-co-quote-price">
+                                            <span class="te-co-quote-amount">@order.EstimatedPrice.Value.ToString("0.00")</span>
+                                            <span class="te-co-quote-currency">JOD</span>
+                                        </div>
+                                        @if (order.EstimatedDays.HasValue)
+                                        {
+                                            <div class="te-co-quote-days">
+                                                <i class="fas fa-clock me-1"></i>Ready in ~@order.EstimatedDays days
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="te-co-actions">
+                                        <a asp-controller="CustomOrder" asp-action="Pay" asp-route-id="@order.Id"
+                                           class="btn btn-success rounded-pill px-4">
+                                            <i class="fas fa-credit-card me-2"></i>Pay Now — @order.EstimatedPrice.Value.ToString("0.00") JOD
+                                        </a>
+                                        <form asp-action="DeclineQuote" asp-route-id="@order.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Decline this quote?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger rounded-pill px-3">Decline</button>
+                                        </form>
+                                        <a asp-action="CustomOrderDetails" asp-route-id="@order.Id"
+                                           class="btn btn-outline-primary rounded-pill px-3">View Journey</a>
+                                    </div>
+                                }
+                                else if (order.Status == CustomOrderStatus.ChangesRequested)
+                                {
+                                    <div class="te-co-changes-banner">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        Leen has requested some adjustments. Please update and resubmit.
+                                    </div>
+                                    <div class="te-co-actions">
+                                        <a asp-controller="CustomOrder" asp-action="Edit" asp-route-id="@order.Id"
+                                           class="btn btn-warning rounded-pill px-4" style="color:#fff;">
+                                            <i class="fas fa-rotate-left me-2"></i>Update &amp; Resubmit
+                                        </a>
+                                        <a asp-action="CustomOrderDetails" asp-route-id="@order.Id"
+                                           class="btn btn-outline-primary rounded-pill px-3">View Journey</a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="te-co-actions">
+                                        <a asp-action="CustomOrderDetails" asp-route-id="@order.Id"
+                                           class="btn btn-outline-primary rounded-pill px-4">
+                                            <i class="fas fa-route me-2"></i>View Journey
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="te-form-card text-center py-5 d-flex flex-column justify-content-center align-items-center"
+                         style="min-height:380px;">
+                        <div style="width:80px;height:80px;border-radius:50%;background:var(--te-light-blush);color:var(--te-dusty-rose);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 1.25rem;">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h3 style="font-family:var(--font-heading);color:var(--te-text-dark);">Dream it, we'll make it.</h3>
+                        <p class="text-muted mb-4" style="max-width:400px;margin:0 auto;">
+                            You don't have any custom requests yet. Let's start crafting something uniquely yours.
+                        </p>
+                        <a asp-controller="CustomOrder" asp-action="Create"
+                           class="btn btn-primary rounded-pill px-5 py-2">
+                            <i class="fas fa-plus me-1"></i> Start a Request
+                        </a>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<style>
+.te-co-card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid var(--te-border);
+    overflow: hidden;
+    box-shadow: 0 2px 14px rgba(122,59,90,.06);
+    transition: box-shadow .25s;
+}
+.te-co-card:hover { box-shadow: 0 8px 34px rgba(122,59,90,.11); }
+
+.te-co-card-top {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .7rem 1.25rem;
+    background: linear-gradient(135deg, var(--te-light-blush), rgba(255,255,255,.7));
+    border-bottom: 1px solid var(--te-border);
+    flex-wrap: wrap; gap: .4rem;
+}
+.te-co-number { font-size:.72rem; color:var(--te-text-muted); font-family:monospace; letter-spacing:.04em; }
+.te-co-date   { font-size:.72rem; color:var(--te-text-muted); }
+
+.te-co-card-body { padding: 1.2rem 1.25rem; }
+.te-co-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; margin-bottom:.85rem; }
+.te-co-title { font-family:var(--font-heading); font-size:1.15rem; color:var(--te-text-dark); margin:0 0 .3rem; }
+.te-co-meta  { display:flex; flex-wrap:wrap; gap:.4rem; font-size:.74rem; color:var(--te-text-muted); }
+.te-co-meta span + span::before { content:'·'; margin-right:.4rem; }
+.te-co-thumb { width:62px; height:62px; border-radius:10px; object-fit:cover; border:1px solid var(--te-border); flex-shrink:0; }
+
+.te-co-admin-note {
+    display: flex; gap:.6rem; align-items:flex-start;
+    background: var(--te-light-blush);
+    border-left: 3px solid var(--accent, var(--te-dusty-rose));
+    border-radius: 0 10px 10px 0;
+    padding: .6rem .9rem; margin-bottom: .9rem;
+}
+.te-co-admin-note-icon  { color:var(--te-dusty-rose); font-size:.85rem; margin-top:.15rem; }
+.te-co-admin-note-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--te-dusty-rose); margin-bottom:.15rem; }
+.te-co-admin-note-text  { font-size:.82rem; color:var(--te-text-secondary); line-height:1.55; }
+
+.te-co-quote-card {
+    display:flex; align-items:center; gap:1.25rem;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1px solid #86efac; border-radius: 12px;
+    padding: .7rem 1.1rem; margin-bottom: .9rem;
+}
+.te-co-quote-price  { display:flex; align-items:baseline; gap:.25rem; }
+.te-co-quote-amount { font-size:1.8rem; font-weight:700; color:#15803d; font-family:var(--font-heading); line-height:1; }
+.te-co-quote-currency { font-size:.8rem; color:#15803d; font-weight:600; }
+.te-co-quote-days   { font-size:.78rem; color:#166534; }
+
+.te-co-changes-banner {
+    background:#fffbeb; border:1px solid #fde68a; border-radius:10px;
+    padding:.55rem .85rem; font-size:.82rem; color:#92400e; margin-bottom:.85rem;
+}
+.te-co-actions { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+</style>
+}

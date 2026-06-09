@@ -1,0 +1,320 @@
+@model Threadelle.Models.Order
+@{
+    Layout = null;
+    ViewData["Title"] = "ThreadElle — Secure Stripe Payment";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stripe Checkout — Order @Model.OrderNumber</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        :root {
+            --te-beige: #E8DCCF;
+            --te-cream: #F8F4EF;
+            --te-taupe: #C9B8A8;
+            --te-rose-gold: #B76E79;
+            --te-brown: #8B7355;
+            --te-dark: #3E3B39;
+            --stripe-blur: rgba(248, 244, 239, 0.95);
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            background: radial-gradient(circle at 10% 20%, #F5EFEB 0%, #E3D6CD 100%);
+            color: var(--te-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .stripe-container {
+            width: 100%;
+            max-width: 820px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 30px 80px rgba(139, 115, 85, 0.18);
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .stripe-summary {
+            flex: 1 1 340px;
+            background: var(--te-cream);
+            padding: 3rem 2.5rem;
+            border-right: 1px solid rgba(139, 115, 85, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stripe-form-panel {
+            flex: 1.5 1 400px;
+            padding: 3rem 2.5rem;
+        }
+
+        .brand-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--te-rose-gold);
+            font-style: italic;
+            font-weight: 500;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+
+        .price-display {
+            font-size: 2.5rem;
+            font-weight: 500;
+            margin: 1.5rem 0;
+            color: var(--te-dark);
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            color: var(--te-brown);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .stripe-label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--te-brown);
+            margin-bottom: 0.4rem;
+        }
+
+        .stripe-input {
+            border: 1px solid var(--te-taupe);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+            width: 100%;
+            margin-bottom: 1.25rem;
+        }
+
+        .stripe-input:focus {
+            outline: none;
+            border-color: var(--te-rose-gold);
+            box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.15);
+        }
+
+        .btn-pay {
+            background: var(--te-rose-gold);
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-size: 1.05rem;
+            box-shadow: 0 4px 15px rgba(183, 110, 121, 0.3);
+        }
+
+        .btn-pay:hover {
+            background: #a35d67;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(183, 110, 121, 0.4);
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--te-brown);
+            border: none;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            display: block;
+            margin: 1.5rem auto 0;
+            text-align: center;
+            transition: color 0.2s ease;
+        }
+
+        .btn-cancel:hover {
+            color: var(--te-dark);
+        }
+
+        .card-icon-group {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 0.3rem;
+            color: var(--te-taupe);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .simulation-banner {
+            background: #FFF3CD;
+            border: 1px solid #FFEBA8;
+            color: #856404;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="stripe-container animate-fade-in">
+        <!-- Summary Panel -->
+        <div class="stripe-summary">
+            <div>
+                <a href="#" class="brand-logo">ThreadElle</a>
+                <div style="font-size:0.9rem;color:var(--te-brown);">Pay ThreadElle</div>
+                <div class="price-display">@Threadelle.Helpers.CurrencyFormatter.Format(Model.TotalPrice)</div>
+                
+                <div class="item-row mt-4">
+                    <span>Order Number</span>
+                    <strong>@Model.OrderNumber</strong>
+                </div>
+                <div class="item-row">
+                    <span>Subtotal</span>
+                    <span>@Threadelle.Helpers.CurrencyFormatter.Format(Model.SubTotal)</span>
+                </div>
+                <div class="item-row">
+                    <span>Shipping</span>
+                    <span>Free</span>
+                </div>
+            </div>
+            
+            <div style="font-size:0.8rem;color:var(--te-taupe);margin-top:2rem;">
+                <i class="fas fa-lock me-1"></i> Powered by Stripe. Simulated sandbox environment.
+            </div>
+        </div>
+
+        <!-- Form Panel -->
+        <div class="stripe-form-panel">
+            <h2 class="form-title">Pay with Card</h2>
+            
+            <div class="simulation-banner">
+                <i class="fas fa-circle-info"></i>
+                <span><strong>Stripe Simulation Mode:</strong> You can enter any mock card number to complete this checkout.</span>
+            </div>
+
+            <form action="/Checkout/StripeSuccess" method="get" id="paymentForm">
+                <input type="hidden" name="orderId" value="@Model.Id" />
+                <input type="hidden" name="session_id" value="SIM_@(Guid.NewGuid().ToString("N").Substring(0,16).ToUpper())" />
+
+                <div class="mb-3">
+                    <label class="stripe-label">Cardholder Name</label>
+                    <input type="text" class="stripe-input" required placeholder="Jane Doe" id="cardName" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="stripe-label">Card details</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="stripe-input pe-5" required placeholder="4242 4242 4242 4242" id="cardNumber" maxlength="19" />
+                        <div class="card-icon-group">
+                            <i class="fab fa-cc-visa" id="iconVisa"></i>
+                            <i class="fab fa-cc-mastercard" id="iconMaster"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <label class="stripe-label">Expiry</label>
+                            <input type="text" class="stripe-input" required placeholder="MM / YY" id="cardExpiry" maxlength="7" />
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <label class="stripe-label">CVC</label>
+                            <input type="text" class="stripe-input" required placeholder="123" id="cardCvc" maxlength="3" />
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-pay" id="payButton">
+                    <i class="fas fa-lock me-2"></i>Pay @Threadelle.Helpers.CurrencyFormatter.Format(Model.TotalPrice)
+                </button>
+            </form>
+
+            <a href="/Checkout/StripeCancel?orderId=@Model.Id" class="btn-cancel">
+                Cancel payment & return to shop
+            </a>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        // Form interactivity
+        document.getElementById('cardNumber').addEventListener('input', function (e) {
+            var val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            var matches = val.match(/\d{4,16}/g);
+            var match = matches && matches[0] || '';
+            var parts = [];
+
+            for (var i=0, len=match.length; i<len; i+=4) {
+                parts.push(match.substring(i, i+4));
+            }
+
+            if (parts.length > 0) {
+                e.target.value = parts.join(' ');
+            } else {
+                e.target.value = val;
+            }
+
+            // Highlight Visa
+            var iconVisa = document.getElementById('iconVisa');
+            var iconMaster = document.getElementById('iconMaster');
+            if (val.startsWith('4')) {
+                iconVisa.style.color = '#00579F';
+                iconMaster.style.color = '';
+            } else if (val.startsWith('5')) {
+                iconMaster.style.color = '#EB001B';
+                iconVisa.style.color = '';
+            } else {
+                iconVisa.style.color = '';
+                iconMaster.style.color = '';
+            }
+        });
+
+        document.getElementById('cardExpiry').addEventListener('input', function (e) {
+            var val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            if (val.length >= 2) {
+                e.target.value = val.substring(0, 2) + ' / ' + val.substring(2, 4);
+            } else {
+                e.target.value = val;
+            }
+        });
+
+        document.getElementById('paymentForm').addEventListener('submit', function (e) {
+            var btn = document.getElementById('payButton');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing simulated transaction…';
+        });
+    </script>
+</body>
+</html>

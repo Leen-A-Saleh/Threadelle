@@ -1,0 +1,525 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<!-- Page header -->
+<section class="te-page-header">
+    <div class="container text-center">
+        <span class="section-tag">Just One More Step</span>
+        <h1 class="section-title">Checkout</h1>
+    </div>
+</section>
+
+<!-- Progress steps -->
+<div class="te-checkout-steps-bar">
+    <div class="container">
+        <div class="te-checkout-steps">
+            <div class="te-checkout-step te-step-done">
+                <div class="te-step-circle"><i class="fas fa-bag-shopping"></i></div>
+                <span>Your Bag</span>
+            </div>
+            <div class="te-checkout-step-line te-step-done"></div>
+            <div class="te-checkout-step te-step-active">
+                <div class="te-step-circle"><i class="fas fa-truck-fast"></i></div>
+                <span>Details</span>
+            </div>
+            <div class="te-checkout-step-line"></div>
+            <div class="te-checkout-step">
+                <div class="te-step-circle"><i class="fas fa-heart"></i></div>
+                <span>Confirmed</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="te-section te-section-light pt-0">
+    <div class="container">
+        <form asp-controller="Checkout" asp-action="Index" method="post" id="checkoutForm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
+            <input type="hidden" asp-for="AppliedCouponCode" id="hiddenCouponCode" />
+
+            <div class="row g-4 align-items-start">
+
+                <!-- ── LEFT: Delivery + Payment ───────────────────────────── -->
+                <div class="col-lg-7">
+
+                    <!-- Delivery Details -->
+                    <div class="te-checkout-card mb-4">
+                        <div class="te-checkout-card-head">
+                            <div class="te-checkout-step-icon">
+                                <i class="fas fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Delivery Details</h5>
+                                <p class="te-checkout-card-sub mb-0">Where should we send your treasure?</p>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="FullName" class="form-control" placeholder="Full name" />
+                                    <label asp-for="FullName">Full Name</label>
+                                </div>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Phone" class="form-control" placeholder="Phone" />
+                                    <label asp-for="Phone">Phone Number</label>
+                                </div>
+                                <span asp-validation-for="Phone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input asp-for="Address" class="form-control"
+                                           placeholder="Street, building, apartment..." />
+                                    <label asp-for="Address">Street Address</label>
+                                </div>
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="City" class="form-control" placeholder="City" />
+                                    <label asp-for="City">City</label>
+                                </div>
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" placeholder="Country"
+                                           value="Jordan" readonly
+                                           style="background:var(--te-soft-beige);cursor:default;" />
+                                    <label>Country</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gift Note -->
+                    <div class="te-checkout-card mb-4">
+                        <div class="te-checkout-card-head">
+                            <div class="te-checkout-step-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Gift Message <span class="te-optional-badge">Optional</span></h5>
+                                <p class="te-checkout-card-sub mb-0">Add a personal note or special instruction</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <textarea asp-for="Note" class="form-control" rows="3"
+                                      placeholder="e.g. Please gift-wrap this, it's for her birthday 🎀"
+                                      style="resize:none;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="te-checkout-card">
+                        <div class="te-checkout-card-head">
+                            <div class="te-checkout-step-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Payment Method</h5>
+                                <p class="te-checkout-card-sub mb-0">Choose how you'd like to pay</p>
+                            </div>
+                        </div>
+
+                        <div class="te-payment-options mt-3">
+                            <label class="te-payment-option">
+                                <input type="radio" name="PaymentMethod" value="Cash on Delivery" checked="@(Model.PaymentMethod == "Cash on Delivery" ? "checked" : null)" />
+                                <span class="te-payment-card">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>
+                                        <strong>Cash on Delivery</strong>
+                                        <small>Pay when your order arrives.</small>
+                                    </span>
+                                    <span class="te-payment-badge ms-auto">Popular</span>
+                                </span>
+                            </label>
+                            <label class="te-payment-option">
+                                <input type="radio" name="PaymentMethod" value="Visa Card" checked="@(Model.PaymentMethod == "Visa Card" ? "checked" : null)" />
+                                <span class="te-payment-card">
+                                    <i class="fab fa-cc-visa" style="font-size: 1.5rem; color: #1a1f71;"></i>
+                                    <span>
+                                        <strong>Visa Card</strong>
+                                        <small>Secure payment powered by Stripe.</small>
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <!-- Stripe Payment Element Container -->
+                        <div id="stripe-payment-container" class="mt-4" style="display: none; padding: 15px; border: 1px solid var(--te-light-border); border-radius: 8px; background: #fff;">
+                            <div id="payment-element">
+                                <!-- Stripe Element will be inserted here -->
+                            </div>
+                            <div id="payment-message" class="text-danger small mt-2 d-none"></div>
+                        </div>
+
+                        <input type="hidden" asp-for="PaymentIntentId" id="paymentIntentId" />
+                        <input type="hidden" id="stripePublishableKey" value="@Model.StripePublishableKey" />
+                        <input type="hidden" id="stripeClientSecret" value="@Model.StripeClientSecret" />
+
+                        <!-- Trust badges -->
+                        <div class="te-checkout-trust mt-4">
+                            <div class="te-checkout-trust-item">
+                                <i class="fas fa-lock"></i> Secure checkout
+                            </div>
+                            <div class="te-checkout-trust-item">
+                                <i class="fas fa-hand-holding-heart"></i> Handmade with care
+                            </div>
+                            <div class="te-checkout-trust-item">
+                                <i class="fas fa-truck"></i> Free shipping over 50 JOD
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ── RIGHT: Order Summary ────────────────────────────────── -->
+                <div class="col-lg-5">
+                    <div class="te-summary-card te-summary-sticky">
+
+                        <h5><i class="fas fa-bag-shopping me-2" style="color:var(--te-dusty-rose);"></i>Your Order</h5>
+
+                        <div class="te-checkout-lines">
+                            @foreach (var line in Model.Cart.Lines)
+                            {
+                                <div class="te-checkout-line">
+                                    <div class="te-checkout-thumb">
+                                        @if (!string.IsNullOrEmpty(line.ImageUrl))
+                                        {
+                                            <img src="@line.ImageUrl" alt="@line.Name" />
+                                        }
+                                        else
+                                        {
+                                            <span class="te-product-placeholder"><i class="fas fa-scissors"></i></span>
+                                        }
+                                        <span class="te-checkout-qty">@line.Quantity</span>
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="te-checkout-name">@line.Name</div>
+                                        @if (!string.IsNullOrEmpty(line.ColorName))
+                                        {
+                                            <div class="te-cart-variant">@line.ColorName</div>
+                                        }
+                                    </div>
+                                    <div class="te-checkout-price flex-shrink-0">
+                                        @Threadelle.Helpers.CurrencyFormatter.Format(line.LineTotal)
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="te-summary-divider"></div>
+
+                        <!-- ── PROMO CODE (EntireOrder coupons only) ── -->
+                        <div class="te-coupon-wrap">
+                            @if (!string.IsNullOrWhiteSpace(Model.AppliedCouponCode))
+                            {
+                                <!-- Already applied: show applied card -->
+                                <div class="te-coupon-applied-card" id="couponAppliedCard">
+                                    <div class="te-coupon-applied-left">
+                                        <i class="fas fa-check-circle te-coupon-check"></i>
+                                        <div>
+                                            <div class="te-coupon-code-label">@Model.AppliedCouponCode</div>
+                                            <div class="te-coupon-saving">-@Threadelle.Helpers.CurrencyFormatter.Format(Model.DiscountAmount) off your order</div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="te-coupon-remove-btn" id="removeCouponBtn" title="Remove coupon">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <input type="hidden" id="hiddenCouponCode" name="AppliedCouponCode" value="@Model.AppliedCouponCode" />
+                            }
+                            else
+                            {
+                                <input type="hidden" id="hiddenCouponCode" name="AppliedCouponCode" value="" />
+                                <div class="te-coupon-form" id="couponForm">
+                                    <div class="te-coupon-label">
+                                        <i class="fas fa-tag me-1" style="color:var(--te-dusty-rose);"></i>Have a promo code?
+                                    </div>
+                                    <div class="te-coupon-input-row">
+                                        <input type="text" class="te-coupon-input" id="couponCodeInput"
+                                               placeholder="Enter code…" autocomplete="off"
+                                               style="text-transform:uppercase;" />
+                                        <button type="button" class="te-coupon-apply-btn" id="applyCouponBtn">
+                                            <span id="applyBtnText">Apply</span>
+                                            <i class="fas fa-spinner fa-spin d-none" id="applyBtnSpinner"></i>
+                                        </button>
+                                    </div>
+                                    <div class="te-coupon-msg d-none" id="couponMessage"></div>
+                                </div>
+                                <!-- Applied state (shows after AJAX success) -->
+                                <div class="te-coupon-applied-card d-none" id="couponAppliedCard">
+                                    <div class="te-coupon-applied-left">
+                                        <i class="fas fa-check-circle te-coupon-check"></i>
+                                        <div>
+                                            <div class="te-coupon-code-label" id="appliedCodeLabel"></div>
+                                            <div class="te-coupon-saving" id="appliedSavingLabel"></div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="te-coupon-remove-btn" id="removeCouponBtn" title="Remove">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="te-summary-divider"></div>
+
+                        <div class="te-summary-row">
+                            <span>Subtotal</span>
+                            <strong>@Threadelle.Helpers.CurrencyFormatter.Format(Model.Cart.SubTotal)</strong>
+                        </div>
+                        <div class="te-summary-row">
+                            <span>Shipping</span>
+                            <strong class="@(Model.Cart.Shipping == 0 ? "te-shipping-free" : "")">
+                                @(Model.Cart.Shipping == 0 ? "Free 🎉" : Threadelle.Helpers.CurrencyFormatter.Format(Model.Cart.Shipping))
+                            </strong>
+                        </div>
+
+                        <div class="te-summary-row" id="discountRow" style="display: @(Model.DiscountAmount > 0 ? "flex" : "none"); color: var(--te-dusty-rose);">
+                            <span>Promo discount</span>
+                            <strong>-<span id="discountAmountDisplay">@Threadelle.Helpers.CurrencyFormatter.Format(Model.DiscountAmount)</span></strong>
+                        </div>
+
+                        <div class="te-summary-divider"></div>
+
+                        <div class="te-summary-row te-summary-total">
+                            <span>Total</span>
+                            <strong><span id="totalAmountDisplay">@((Model.Cart.Total - Model.DiscountAmount).ToString("0.00"))</span></strong>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-4 btn-lg" id="placeOrderBtn">
+                            <i class="fas fa-heart me-2"></i>Place My Order
+                        </button>
+
+                        <div class="te-summary-note mt-3">
+                            <i class="fas fa-lock me-1"></i> Your details are safe and secure with us.
+                        </div>
+
+                        <div class="te-estimated-delivery">
+                            <i class="fas fa-clock me-1" style="color:var(--te-gold);"></i>
+                            Estimated delivery: <strong>3 – 7 business days</strong>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div><!-- /row -->
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        var form = document.getElementById('checkoutForm');
+        var btn = document.getElementById('placeOrderBtn');
+        var paymentMethodRadios = document.querySelectorAll('input[name="PaymentMethod"]');
+        var stripeContainer = document.getElementById('stripe-payment-container');
+        var paymentMessage = document.getElementById('payment-message');
+        var stripePk = document.getElementById('stripePublishableKey').value;
+        var stripeCs = document.getElementById('stripeClientSecret').value;
+        var isSimMode = stripePk === "pk_test_mock" || !stripePk;
+        var stripe, elements, paymentElement;
+
+        // Toggle Stripe Container
+        function toggleStripeUI() {
+            var selected = document.querySelector('input[name="PaymentMethod"]:checked').value;
+            if (selected === "Visa Card") {
+                stripeContainer.style.display = 'block';
+            } else {
+                stripeContainer.style.display = 'none';
+                paymentMessage.classList.add('d-none');
+            }
+        }
+
+        paymentMethodRadios.forEach(r => r.addEventListener('change', toggleStripeUI));
+        toggleStripeUI(); // init
+
+        // Initialize Stripe Elements
+        if (stripePk && stripeCs) {
+            if (isSimMode) {
+                document.getElementById('payment-element').innerHTML = '<div class="alert alert-info mb-0"><i class="fas fa-info-circle me-2"></i><strong>Simulation Mode:</strong> No real card required. This will be automatically approved.</div>';
+            } else {
+                stripe = Stripe(stripePk);
+                elements = stripe.elements({ clientSecret: stripeCs });
+                paymentElement = elements.create('payment');
+                paymentElement.mount('#payment-element');
+            }
+        }
+
+        function showMessage(messageText) {
+            paymentMessage.classList.remove('d-none');
+            paymentMessage.textContent = messageText;
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing payment…';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-heart me-2"></i>Place My Order';
+            }
+        }
+
+        // Handle Form Submission
+        form.addEventListener('submit', async function (e) {
+            var selected = document.querySelector('input[name="PaymentMethod"]:checked').value;
+            
+            if (selected === "Cash on Delivery") {
+                // Submit normally
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Placing your order…';
+                return; // Let standard HTML submit proceed
+            }
+
+            // Stripe Visa Flow
+            e.preventDefault();
+            setLoading(true);
+
+            if (isSimMode) {
+                // Mock success
+                document.getElementById('paymentIntentId').value = "pi_mock_secret_" + Date.now();
+                form.submit();
+                return;
+            }
+
+            if (!stripe || !elements) {
+                showMessage("Stripe has not loaded properly. Please refresh the page or choose Cash on Delivery.");
+                setLoading(false);
+                return;
+            }
+
+            // Note: confirmPayment usually redirects, but we use redirect: 'if_required' 
+            // so we can capture the intent ID and submit our own form!
+            var { error, paymentIntent } = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    // Optional: return_url isn't strictly used if redirect is 'if_required' and card doesn't need 3DS.
+                    // But Stripe requires it just in case.
+                    return_url: window.location.origin + '/Checkout', 
+                },
+                redirect: 'if_required'
+            });
+
+            if (error) {
+                showMessage(error.message);
+                setLoading(false);
+            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+                document.getElementById('paymentIntentId').value = paymentIntent.id;
+                form.submit();
+            } else {
+                showMessage("An unexpected error occurred.");
+                setLoading(false);
+            }
+        });
+
+        // ── Promo Code ───────────────────────────────────────────────────────
+        (function() {
+            var baseTotal = parseFloat('@((Model.Cart.Total).ToString("0.00"))'.replace(',', '.'));
+            var currentDiscount = @Model.DiscountAmount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+
+            function setTotal(discount) {
+                var t = Math.max(0, baseTotal - discount);
+                var el = document.getElementById('totalAmountDisplay');
+                if (el) el.innerText = t.toFixed(2);
+                var dr = document.getElementById('discountRow');
+                if (dr) dr.style.display = discount > 0 ? 'flex' : 'none';
+                var da = document.getElementById('discountAmountDisplay');
+                if (da) da.innerText = discount.toFixed(2);
+            }
+
+            setTotal(currentDiscount);
+
+            var applyBtn   = document.getElementById('applyCouponBtn');
+            var removeBtn  = document.getElementById('removeCouponBtn');
+            var input      = document.getElementById('couponCodeInput');
+            var msgEl      = document.getElementById('couponMessage');
+            var formEl     = document.getElementById('couponForm');
+            var appliedCard= document.getElementById('couponAppliedCard');
+            var hidden     = document.getElementById('hiddenCouponCode');
+
+            if (applyBtn) {
+                applyBtn.addEventListener('click', function () {
+                    var code = input ? input.value.trim().toUpperCase() : '';
+                    if (!code) { showMsg('Please enter a promo code.', false); return; }
+
+                    setApplying(true);
+
+                    fetch('@Url.Action("ApplyCoupon", "Checkout")', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(code)
+                    })
+                    .then(r => r.json())
+                    .then(function(data) {
+                        setApplying(false);
+                        if (data.success) {
+                            if (hidden) hidden.value = code;
+                            currentDiscount = parseFloat(data.discountAmount) || 0;
+                            setTotal(currentDiscount);
+
+                            if (formEl) formEl.classList.add('d-none');
+                            if (appliedCard) {
+                                appliedCard.classList.remove('d-none');
+                                var cl = appliedCard.querySelector('#appliedCodeLabel');
+                                var sl = appliedCard.querySelector('#appliedSavingLabel');
+                                if (cl) cl.textContent = code;
+                                if (sl) sl.textContent = '-' + currentDiscount.toFixed(2) + ' JOD off your order';
+                            }
+                        } else {
+                            showMsg(data.message, false);
+                        }
+                    })
+                    .catch(function() {
+                        setApplying(false);
+                        showMsg('Something went wrong. Please try again.', false);
+                    });
+                });
+
+                if (input) {
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') { e.preventDefault(); applyBtn.click(); }
+                    });
+                }
+            }
+
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function () {
+                    if (hidden)       hidden.value = '';
+                    if (input)        input.value  = '';
+                    if (appliedCard)  appliedCard.classList.add('d-none');
+                    if (formEl)       formEl.classList.remove('d-none');
+                    if (msgEl)        { msgEl.classList.add('d-none'); msgEl.innerHTML = ''; }
+                    currentDiscount = 0;
+                    setTotal(0);
+                });
+            }
+
+            function setApplying(on) {
+                if (!applyBtn) return;
+                applyBtn.disabled = on;
+                var txt = document.getElementById('applyBtnText');
+                var spin = document.getElementById('applyBtnSpinner');
+                if (txt)  txt.classList.toggle('d-none', on);
+                if (spin) spin.classList.toggle('d-none', !on);
+            }
+
+            function showMsg(text, success) {
+                if (!msgEl) return;
+                msgEl.innerHTML  = text;
+                msgEl.className  = 'te-coupon-msg ' + (success ? 'is-success' : 'is-error');
+                msgEl.classList.remove('d-none');
+            }
+        })();
+    </script>
+}
